@@ -1,0 +1,5 @@
+﻿SELECT
+	COALESCE(T0."U_AcctCode", '') AS "AcctCode"
+FROM "@S7T_PARAMAPIBAIXA" T0
+WHERE
+	COALESCE(T0."U_Usage", -1) = {0}

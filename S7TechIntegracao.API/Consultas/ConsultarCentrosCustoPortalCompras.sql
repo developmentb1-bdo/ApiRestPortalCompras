@@ -1,0 +1,10 @@
+﻿SELECT {1}
+	T0."PrcCode" AS "CenterCode",
+	T0."PrcName" AS "CenterName"
+FROM OPRC T0
+WHERE
+	T0."Locked" = 'N'
+	AND T0."Active" = 'Y'
+	AND T0."DimCode" = 2
+	AND (COALESCE(T0."PrcCode", '') LIKE '%{0}%' OR '{0}' = '')
+ORDER BY T0."PrcCode"

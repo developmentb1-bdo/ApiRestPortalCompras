@@ -1,0 +1,1 @@
+﻿SELECT T0."U_S7Segmento" FROM OPRJ T0 WHERE T0."PrjCode"  = '{0}'

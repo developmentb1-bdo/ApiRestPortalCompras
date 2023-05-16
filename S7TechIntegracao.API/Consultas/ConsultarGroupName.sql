@@ -1,0 +1,1 @@
+﻿select "GroupName"  from OCRG Where "GroupCode" = {0}

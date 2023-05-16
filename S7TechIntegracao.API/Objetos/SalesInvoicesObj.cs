@@ -1,0 +1,431 @@
+﻿using Dapper;
+using RestSharp;
+using S7TechIntegracao.API.Models;
+using S7TechIntegracao.API.Utils;
+using System;
+using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Configuration;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
+
+namespace S7TechIntegracao.API.Objetos
+{
+    public class SalesInvoicesObj
+    {
+        private static readonly SalesInvoicesObj _instancia = new SalesInvoicesObj();
+
+        public static SalesInvoicesObj GetInstance()
+        {
+            return _instancia;
+        }
+        public Documents Cadastrar(object model)
+        {
+            try
+            {
+                var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var hanaApi = param["HanaApi"];
+
+                DocumentsObj.GetInstance().AdicionarCentrosCustos(ref model);
+
+                var client = Conexao.GetInstance().Client;
+                var request = new RestRequest("Invoices", Method.POST);
+                request.AddParameter("application/json", model, ParameterType.RequestBody);
+                var response = client.Execute<Documents>(request);
+
+                if (!response.IsSuccessful)
+                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                return response.Data;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [Cadastrar] {ex.Message}");
+
+                throw ex;
+            }
+        }
+        public Documents Atualizar(int docEntry, object model)
+        {
+            try
+            {
+                var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var hanaApi = param["HanaApi"];
+
+                var client = Conexao.GetInstance().Client;
+                var request = new RestRequest($"Invoices({docEntry})", Method.PATCH);
+                request.AddParameter("application/json", model, ParameterType.RequestBody);
+                //var response = client.Execute<Documents>(request);
+
+                var response = client.Execute(request);
+
+                if (!response.IsSuccessful)
+                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                var document = Consultar(docEntry);
+
+                return document;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [Atualizar] {ex.Message}");
+
+                throw ex;
+            }
+        }
+        public List<Documents> ConsultarTodos()
+        {
+            try
+            {
+                var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var hanaApi = param["HanaApi"];
+
+                var ret = new
+                {
+                    value = new List<BusinessPartners>()
+                };
+
+                var client = Conexao.GetInstance().Client;
+                var request = new RestRequest("Invoices", Method.GET);
+                var response = client.Execute<RetornoListaGenerica<List<Documents>>>(request);
+
+                if (!response.IsSuccessful)
+                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                return response.Data.value;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [ConsultarTodos] {ex.Message}");
+
+                throw ex;
+            }
+        }
+        public Documents Consultar(int docEntry)
+        {
+            try
+            {
+                var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var hanaApi = param["HanaApi"];
+
+                var client = Conexao.GetInstance().Client;
+                var request = new RestRequest($"Invoices({docEntry})", Method.GET);
+                var response = client.Execute<Documents>(request);
+
+                if (!response.IsSuccessful)
+                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                return response.Data;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [Consultar] {ex.Message}");
+
+                throw ex;
+            }
+        }
+        public Documents ConsultarPorDocNum(int docNum)
+        {
+            try
+            {
+                var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var hanaApi = param["HanaApi"];
+
+                var client = Conexao.GetInstance().Client;
+                var request = new RestRequest($"Invoices?$filter=DocNum eq {docNum}", Method.GET);
+                var response = client.Execute<RetornoListaGenerica<List<Documents>>>(request);
+
+                if (!response.IsSuccessful)
+                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                return response.Data.value.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [ConsultarPorDocNum] {ex.Message}");
+
+                throw ex;
+            }
+        }    
+        public List<Documents> ConsultarPorNumAtCard(string numAtCard)
+        {
+            try
+            {
+                var ret = new List<Documents>();
+                var retDocEntry = new List<int>();
+                var query = string.Format(S7Tech.GetConsultas("ConsultarNumAtCardSalesInvoice"), numAtCard);
+                using (var hanaService = new HanaService())
+                {
+                    retDocEntry = hanaService.GetHanaConnection().Query<int>(query).ToList();
+                }
+
+                foreach (var docEntry in retDocEntry)
+                {
+                    ret.Add(Consultar(docEntry));
+                }
+
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [ConsultarPorNumAtCard] {ex.Message}");
+
+                throw ex;
+            }
+        }
+        public List<Documents> ConsultarTitulosAbertos(string date, string hour, string codigoCliente, int docEntry, int pagina)
+        {
+            try
+            {
+                
+                var ret = new List<Documents>();               
+                var retDocEntry1 = new List<Documents>();
+                var retBoleto = new List<BoletoLista>();
+
+                var dataDocumento = $@"AND TO_VARCHAR (TO_DATE(A.""CreateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}'";
+                var idDocumento =  $@"AND A.""DocEntry"" =  '{docEntry}' ";
+                var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";
+                
+                var paramInvent = (NameValueCollection)ConfigurationManager.GetSection("ParametrosInvent");
+                var urlInvent = paramInvent["UrlInvent"];
+                var token = paramInvent["Authorization"];
+                var extension = paramInvent["Extension"];
+                var contentType = paramInvent["ContentType"];
+
+                var limit = DefaultSettingsModel.GetInstance().ReceivPaginationLimit;
+
+                var offSet = (pagina - 1) * limit;
+
+                if (string.IsNullOrEmpty(codigoCliente))
+                {
+                    cardCode = "";
+                }
+                if (string.IsNullOrEmpty(date) && string.IsNullOrEmpty(date))
+                {
+                    dataDocumento = "";
+                }
+                if (docEntry == 0)
+                {
+                    idDocumento = "";
+                }
+                var query = string.Format(S7Tech.GetConsultas("ConsultarOpenTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, limit, offSet);                
+                using (var hanaService = new HanaService())
+                {
+                    retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();                    
+                }
+                if (retDocEntry1.Count > 0)
+                {                    
+                    foreach (var item in retDocEntry1)
+                    {
+                        var documento = Consultar(item.DocEntry);                       
+
+                        documento.FederalTaxID = item.FederalTaxID;
+                        documento.Cancelled = item.Cancelled;
+
+                        query = string.Format(S7Tech.GetConsultas("ConsultarInfoNFSeSKILL"), documento.DocEntry);
+                        using (var hanaService = new HanaService())
+                        {
+                            retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();
+                        }
+                        foreach (var item1 in retDocEntry1)
+                        {
+                            documento.U_CodigoVerificador = item1.U_CodigoVerificador;
+                            documento.NumNfse = item1.NumNfse;                            
+                        }
+                        query = string.Format(S7Tech.GetConsultas("ConsultarIDBoletoInvent"), documento.DocEntry);
+                        using (var hanaService = new HanaService())
+                        {
+                            retBoleto = hanaService.GetHanaConnection().Query<BoletoLista>(query).ToList();
+                        }
+                        List<BoletoPdf> boletos = new List<BoletoPdf>();
+                        foreach (var item2 in retBoleto)
+                        {
+                            try
+                            {
+
+                                var client = new RestClient($@"{urlInvent} + {item2.codigo} + {extension}");
+                                client.Timeout = -1;
+                                var request = new RestRequest(Method.GET);
+                                request.AddHeader("Authorization", token);
+                                request.AddHeader("Content-Type", contentType);
+                                IRestResponse response = client.Execute(request);
+                                Log4Net.Log.Error($"Status do retorno" + response.StatusCode + response.StatusDescription);
+                                var arquivo64 = Convert.ToBase64String(response.RawBytes);
+
+                                BoletoPdf insboleto = new BoletoPdf();
+                                insboleto.codigo = item2.codigo;
+                                insboleto.parcela = item2.parcela;
+                                insboleto.boleto = arquivo64;
+
+                                boletos.Add(insboleto);                             
+                                
+                            }
+                            catch (Exception)
+                            {
+                                throw;
+                            }
+
+                        }
+                        documento.boletos = boletos;
+
+                        ret.Add(documento);
+                    }
+                }
+                
+
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [ConsultarTitulosAbertos] {ex.Message}");
+
+                throw ex;
+            }
+        }
+        public List<Documents> ConsultarTitulosBaixados(string date, string hour, string codigoCliente, int docEntry, int pagina)
+        {
+            try
+            {
+                var ret = new List<Documents>();                
+                var retDocEntry1 = new List<Documents>();
+                var retPagamentos = new List<PaymentInvoices>();
+
+                var dataDocumento = $@"AND (TO_VARCHAR (TO_DATE(E.""DocDate""), 'YYYYMMDD')|| ':'|| E.""DocTime"" > '{date}:{hour}' OR TO_VARCHAR(TO_DATE(E.""UpdateDate""), 'YYYYMMDD') >='{date}') ";
+                var idDocumento = $@"AND A.""DocEntry"" =  '{docEntry}'";
+                var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";
+
+                var limit = DefaultSettingsModel.GetInstance().ReceivPaginationLimit;
+
+                var offSet = (pagina - 1) * limit;
+
+                if (string.IsNullOrEmpty(codigoCliente))
+                {
+                    cardCode = "";
+                }
+                if (string.IsNullOrEmpty(date) && string.IsNullOrEmpty(date))
+                {
+                    dataDocumento = "";
+                }
+                if (docEntry == 0)
+                {
+                    idDocumento = "";
+                }                
+                var query = string.Format(S7Tech.GetConsultas("ConsultarClosedTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, limit, offSet);
+
+                using (var hanaService = new HanaService())
+                {
+                    retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();
+                }  
+                
+                if (retDocEntry1.Count > 0)
+                {
+                    foreach (var item in retDocEntry1)
+                    {
+                        var documento = Consultar(item.DocEntry);
+                        documento.Cancelled = item.Cancelled;
+                        documento.Saldo = Math.Round((double)(documento.DocTotal - documento.PaidToDate), 2);
+                        //documento.FederalTaxID = item.FederalTaxID;
+
+                        query = string.Format(S7Tech.GetConsultas("ConsultarInfoNFSeSKILL"), documento.DocEntry);
+                        using (var hanaService = new HanaService())
+                        {
+                            retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();
+                        }
+
+                        foreach (var item1 in retDocEntry1)
+                        {
+                            documento.U_CodigoVerificador = item1.U_CodigoVerificador;
+                            documento.NumNfse = item1.NumNfse;
+                        }
+                        query = string.Format(S7Tech.GetConsultas("ConsultarPaymentsTitlesSalesInvoice"), documento.DocEntry);
+                        using (var hanaService = new HanaService())
+                        {
+                            retPagamentos = hanaService.GetHanaConnection().Query<PaymentInvoices>(query).ToList();
+                        }
+                        List<PaymentInvoices> pagamentos = new List<PaymentInvoices>();
+                        
+                        foreach (var item2 in retPagamentos)
+                        {
+                            PaymentInvoices pag = new PaymentInvoices();
+                            pag.InstallmentId = item2.InstallmentId;
+                            pag.SumApplied =item2.SumApplied;                           
+                            pag.DataPagamento = item2.DataPagamento;
+                            pag.Canceled = item2.Canceled;
+                            pag.Saldo = (Convert.ToDouble(item2.InsTotal)) - (Convert.ToDouble(item2.PaidToDate));
+                            pagamentos.Add(pag);
+                        }                        
+                        documento.PaymentInvoices = pagamentos;
+                        ret.Add(documento);
+                    }
+                   
+                }
+                else
+                {
+                    Console.WriteLine("Nota Fiscal Cancelada ou inexistente!");
+                }
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[SalesInvoicesObj] [ConsultarTitulosFechados] {ex.Message}");
+
+                throw ex;
+            }            
+        }
+        public List<Documents> ConsultarTitulosCanceladosOuFechados(string date, string hour, string codigoCliente, int docEntry, int pagina)
+        {
+            try
+            {
+                var ret = new List<Documents>();
+                var retDocEntry1 = new List<Documents>();              
+
+                var dataDocumento = $@"AND TO_VARCHAR (TO_DATE(A.""CreateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}'";
+                var idDocumento = $@"AND A.""DocEntry"" =  '{docEntry}' ";
+                var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";                
+
+                var limit = DefaultSettingsModel.GetInstance().ReceivPaginationLimit;              
+                var offSet = (pagina - 1) * limit;
+                if (string.IsNullOrEmpty(codigoCliente))
+                {
+                    cardCode = "";
+                }
+                if (string.IsNullOrEmpty(date) && string.IsNullOrEmpty(date))
+                {
+                    dataDocumento = "";
+                }
+                if (docEntry == 0)
+                {
+                    idDocumento = "";
+                }
+                
+                var query = string.Format(S7Tech.GetConsultas("ConsultarTitlesCanceledOrClosedSalesInvoice"), dataDocumento, cardCode, idDocumento, limit, offSet);                
+                using (var hanaService = new HanaService())
+                {
+                    retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();
+                }
+                if (retDocEntry1.Count > 0)
+                {
+                    foreach (var item in retDocEntry1)
+                    {
+                        var documento = Consultar(item.DocEntry);
+
+                        documento.FederalTaxID = item.FederalTaxID;
+                        documento.Cancelled = item.Cancelled;
+
+                        ret.Add(documento);
+                    }                    
+                }
+                return ret;
+            }
+            catch (Exception ex)
+            {
+
+                Log4Net.Log.Error($"[SalesInvoicesObj] [ConsultarTitulosCanceladosOuFechados] {ex.Message}");
+
+                throw ex;
+            }
+        }
+    }
+}

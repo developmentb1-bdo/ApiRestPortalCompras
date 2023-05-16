@@ -1,0 +1,10 @@
+﻿SET DATEFORMAT YMD
+
+SELECT
+	COALESCE(T0.TaxId0, '') AS TaxId0,
+	COALESCE(T0.TaxId1, '') AS TaxId1,
+	COALESCE(T0.TaxId4, '') AS TaxId4
+FROM CRD7 T0
+WHERE
+	T0."CardCode" = '{0}'
+GROUP BY T0.TaxId0, T0.TaxId1, T0.TaxId4

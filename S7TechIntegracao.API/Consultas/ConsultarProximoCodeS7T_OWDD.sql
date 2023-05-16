@@ -1,0 +1,3 @@
+﻿SELECT
+	COALESCE((MAX(TO_INT(COALESCE(T0."Code", '1'))) + 1), 1) AS "Code"
+FROM "@S7T_OWDD" T0

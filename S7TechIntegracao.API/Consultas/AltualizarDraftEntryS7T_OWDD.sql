@@ -1,0 +1,1 @@
+﻿update "@S7T_OWDD" Set "U_DraftEntry" = '{0}' where "Code" = '{1}'

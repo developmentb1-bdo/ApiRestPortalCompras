@@ -1,0 +1,3 @@
+﻿SELECT 
+	COALESCE(MAX(CAST("Code" AS INT)), 0) + 1 AS "NextId" 
+FROM "@SKILL_INF_ITEM_DOC"
