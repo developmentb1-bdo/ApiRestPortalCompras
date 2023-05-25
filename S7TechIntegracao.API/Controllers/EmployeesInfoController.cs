@@ -13,8 +13,7 @@ using Swashbuckle.Swagger.Annotations;
 namespace S7TechIntegracao.API.Controllers
 {
     public class EmployeesInfoController : ApiController
-    {
-        
+    {   
 
         [HttpGet]
         [SwaggerOperation("Get")]
@@ -62,6 +61,35 @@ namespace S7TechIntegracao.API.Controllers
             {
 
                 var ret = EmployeesInfoObj.GetInstance().ConsultarEmail(usuario, senha);
+
+                return Ok(ret);
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    var jsonObj = JObject.Parse(ex.Message);
+                    return Content(HttpStatusCode.BadRequest, jsonObj);
+                }
+                catch (Exception e)
+                {
+                    return Content(HttpStatusCode.BadRequest, e.Message);
+                }
+            }
+        }
+
+        [HttpGet]
+        [SwaggerOperation("Get")]
+        [Route("api/EmployeesInfo/GetPassEncryptedUser")]
+        public async Task<IHttpActionResult> GetByPassEncryptedUser([FromUri] string usuario)
+        {
+            Conexao.GetInstance().Login();
+            var sessionId = Conexao.GetInstance().SessionId;
+
+            try
+            {
+
+                var ret = EmployeesInfoObj.GetInstance().GetByPassEncryptedUser(usuario);
 
                 return Ok(ret);
             }
@@ -162,5 +190,34 @@ namespace S7TechIntegracao.API.Controllers
                 }
             }
         }
+
+
+        [HttpPatch]
+        [SwaggerOperation("Patch")]
+        [Route("api/PatchEncryptedPassForUser")]
+        public async Task<IHttpActionResult> PatchEncryptedPassForUser()
+        {
+            Conexao.GetInstance().Login();
+            var sessionId = Conexao.GetInstance().SessionId;
+
+            try
+            {
+                EmployeesInfoObj.GetInstance().AtualizarSenhaParaEncriptadaDoUsuario();
+                return Ok("Atualizado");
+            }
+            catch (Exception ex)
+            {
+                try
+                {
+                    var jsonObj = JObject.Parse(ex.Message);
+                    return Content(HttpStatusCode.BadRequest, jsonObj);
+                }
+                catch (Exception e)
+                {
+                    return Content(HttpStatusCode.BadRequest, e.Message);
+                }
+            }
+        }
+
     }
 }
