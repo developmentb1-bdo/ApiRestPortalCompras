@@ -354,6 +354,8 @@ namespace S7TechIntegracao.API.Objetos
                             pag.DataPagamento = item2.DataPagamento;
                             pag.Canceled = item2.Canceled;
                             pag.Saldo = (Convert.ToDouble(item2.InsTotal)) - (Convert.ToDouble(item2.PaidToDate));
+                            pag.ContaDoRazao = item2.ContaDoRazao;
+                            pag.NomeDaConta = item2.NomeDaConta;
                             pagamentos.Add(pag);
                         }                        
                         documento.PaymentInvoices = pagamentos;

@@ -19,6 +19,8 @@ namespace S7TechIntegracao.API.Models
         public string InsTotal { get; set; }
         public string PaidToDate { get; set; }
         public double? Saldo { get; set; }
+        public string ContaDoRazao { get; set; }
+        public string NomeDaConta { get; set; }
         public PaymentInvoices()
         {
             InvoiceType = "it_Invoice";
