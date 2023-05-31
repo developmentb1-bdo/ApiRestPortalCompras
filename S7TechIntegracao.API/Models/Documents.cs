@@ -80,6 +80,7 @@ namespace S7TechIntegracao.API.Models
         public string PayToCode { get; set; }
         public int? BPL_IDAssignedToInvoice { get; set; }
         public string BPLName { get; set; }
+        public int IdFilialIntBank { get; set; }
         public int? SequenceCode { get; set; }
         public int? SequenceSerial { get; set; }     
         public string SeriesString { get; set; }
@@ -145,7 +146,6 @@ namespace S7TechIntegracao.API.Models
         
         public List<PaymentInvoices> PaymentInvoices { get; set; }
 
-        public int IdFilialIntBank { get; set; }
 
         public Documents()
         {

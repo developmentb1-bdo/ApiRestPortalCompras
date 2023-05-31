@@ -297,6 +297,8 @@ namespace S7TechIntegracao.API.Objetos
                 var dataDocumento = $@"AND (TO_VARCHAR (TO_DATE(E.""DocDate""), 'YYYYMMDD')|| ':'|| E.""DocTime"" > '{date}:{hour}' OR TO_VARCHAR(TO_DATE(E.""UpdateDate""), 'YYYYMMDD') >='{date}') ";
                 var idDocumento = $@"AND A.""DocEntry"" =  '{docEntry}'";
                 var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";
+                var parametroSap = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var companyDb = parametroSap["CompanyDB"];
 
                 var limit = DefaultSettingsModel.GetInstance().ReceivPaginationLimit;
 
@@ -314,7 +316,7 @@ namespace S7TechIntegracao.API.Objetos
                 {
                     idDocumento = "";
                 }                
-                var query = string.Format(S7Tech.GetConsultas("ConsultarClosedTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, limit, offSet);
+                var query = string.Format(S7Tech.GetConsultas("ConsultarClosedTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, companyDb, limit, offSet);
 
                 using (var hanaService = new HanaService())
                 {
@@ -328,6 +330,7 @@ namespace S7TechIntegracao.API.Objetos
                         var documento = Consultar(item.DocEntry);
                         documento.Cancelled = item.Cancelled;
                         documento.Saldo = Math.Round((double)(documento.DocTotal - documento.PaidToDate), 2);
+                        documento.IdFilialIntBank = item.IdFilialIntBank;
                         //documento.FederalTaxID = item.FederalTaxID;
 
                         query = string.Format(S7Tech.GetConsultas("ConsultarInfoNFSeSKILL"), documento.DocEntry);
@@ -387,7 +390,9 @@ namespace S7TechIntegracao.API.Objetos
 
                 var dataDocumento = $@"AND TO_VARCHAR (TO_DATE(A.""CreateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}'";
                 var idDocumento = $@"AND A.""DocEntry"" =  '{docEntry}' ";
-                var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";                
+                var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";
+                var parametroSap = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var companyDb = parametroSap["CompanyDB"];
 
                 var limit = DefaultSettingsModel.GetInstance().ReceivPaginationLimit;              
                 var offSet = (pagina - 1) * limit;
@@ -404,7 +409,7 @@ namespace S7TechIntegracao.API.Objetos
                     idDocumento = "";
                 }
                 
-                var query = string.Format(S7Tech.GetConsultas("ConsultarTitlesCanceledOrClosedSalesInvoice"), dataDocumento, cardCode, idDocumento, limit, offSet);                
+                var query = string.Format(S7Tech.GetConsultas("ConsultarTitlesCanceledOrClosedSalesInvoice"), dataDocumento, cardCode, idDocumento, companyDb, limit, offSet);                
                 using (var hanaService = new HanaService())
                 {
                     retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();
@@ -417,6 +422,7 @@ namespace S7TechIntegracao.API.Objetos
 
                         documento.FederalTaxID = item.FederalTaxID;
                         documento.Cancelled = item.Cancelled;
+                        documento.IdFilialIntBank = item.IdFilialIntBank;
 
                         ret.Add(documento);
                     }                    
