@@ -11,7 +11,7 @@ FROM
 OINV A
 INNER JOIN INV6 B ON B."DocEntry" = A."DocEntry"
 INNER JOIN OBPL C ON C."BPLId" = A."BPLId"
-INNER JOIN "IntegrationBank"."IV_IB_CompanyLocal" D ON D."Id" = A."BPLId"
+INNER JOIN "IntegrationBank"."IV_IB_CompanyLocal" D ON D."BPLId" = A."BPLId" and "CompanyDb" = '{3}'
 WHERE
 B."TotalBlck" <> B."InsTotal"
 AND B."Status" = 'O'
@@ -22,4 +22,4 @@ and B."PaidToDate" <= 0
 {2}
 group by   A."DocEntry", A."CreateDate", A."DocTime", A."CardCode", A."DocNum",C."TaxIdNum",A."CANCELED", D."Id"
 order by A."CreateDate", A."DocTime" asc
-LIMIT {3} offset {4};
+LIMIT {4} offset {5};

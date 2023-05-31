@@ -187,7 +187,8 @@ namespace S7TechIntegracao.API.Objetos
                 var dataDocumento = $@"AND TO_VARCHAR (TO_DATE(A.""CreateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}'";
                 var idDocumento =  $@"AND A.""DocEntry"" =  '{docEntry}' ";
                 var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";
-                
+                var parametroSap = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+                var companyDb = parametroSap["CompanyDB"];
                 var paramInvent = (NameValueCollection)ConfigurationManager.GetSection("ParametrosInvent");
                 var urlInvent = paramInvent["UrlInvent"];
                 var token = paramInvent["Authorization"];
@@ -210,7 +211,7 @@ namespace S7TechIntegracao.API.Objetos
                 {
                     idDocumento = "";
                 }
-                var query = string.Format(S7Tech.GetConsultas("ConsultarOpenTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, limit, offSet);                
+                var query = string.Format(S7Tech.GetConsultas("ConsultarOpenTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, companyDb,limit, offSet);                
                 using (var hanaService = new HanaService())
                 {
                     retDocEntry1 = hanaService.GetHanaConnection().Query<Documents>(query).ToList();                    
@@ -223,6 +224,7 @@ namespace S7TechIntegracao.API.Objetos
 
                         documento.FederalTaxID = item.FederalTaxID;
                         documento.Cancelled = item.Cancelled;
+                        documento.IdFilialIntBank = item.IdFilialIntBank;
 
                         query = string.Format(S7Tech.GetConsultas("ConsultarInfoNFSeSKILL"), documento.DocEntry);
                         using (var hanaService = new HanaService())
