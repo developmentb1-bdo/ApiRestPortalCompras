@@ -145,6 +145,8 @@ namespace S7TechIntegracao.API.Models
         
         public List<PaymentInvoices> PaymentInvoices { get; set; }
 
+        public int IdFilialIntBank { get; set; }
+
         public Documents()
         {
             Posted = "tYES";
