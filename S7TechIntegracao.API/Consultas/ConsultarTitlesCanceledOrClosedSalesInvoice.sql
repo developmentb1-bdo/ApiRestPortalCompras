@@ -11,7 +11,7 @@ FROM
 OINV A
 INNER JOIN INV6 B ON B."DocEntry" = A."DocEntry"
 INNER JOIN OBPL C ON C."BPLId" = A."BPLId"
-INNER JOIN "IntegrationBank"."IV_IB_CompanyLocal" D ON D."Id" = A."BPLId" and "CompanyDb" = '{3}'
+INNER JOIN "IntegrationBank"."IV_IB_CompanyLocal" D ON D."BPLId" = A."BPLId" and "CompanyDb" = '{3}'
 WHERE
 B."TotalBlck" <> B."InsTotal"
 and A."CANCELED" <> 'N'

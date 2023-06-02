@@ -344,7 +344,7 @@ namespace S7TechIntegracao.API.Objetos
                             documento.U_CodigoVerificador = item1.U_CodigoVerificador;
                             documento.NumNfse = item1.NumNfse;
                         }
-                        query = string.Format(S7Tech.GetConsultas("ConsultarPaymentsTitlesSalesInvoice"), documento.DocEntry);
+                        query = string.Format(S7Tech.GetConsultas("ConsultarPaymentsTitlesSalesInvoice"), documento.DocEntry,companyDb);
                         using (var hanaService = new HanaService())
                         {
                             retPagamentos = hanaService.GetHanaConnection().Query<PaymentInvoices>(query).ToList();
@@ -361,6 +361,7 @@ namespace S7TechIntegracao.API.Objetos
                             pag.Saldo = (Convert.ToDouble(item2.InsTotal)) - (Convert.ToDouble(item2.PaidToDate));
                             pag.ContaDoRazao = item2.ContaDoRazao;
                             pag.NomeDaConta = item2.NomeDaConta;
+                            pag.BaixaRenegociacao = item2.BaixaRenegociacao;
                             pagamentos.Add(pag);
                         }                        
                         documento.PaymentInvoices = pagamentos;
@@ -422,7 +423,7 @@ namespace S7TechIntegracao.API.Objetos
 
                         documento.FederalTaxID = item.FederalTaxID;
                         documento.Cancelled = item.Cancelled;
-                        documento.IdFilialIntBank = item.IdFilialIntBank;
+                        documento.IdFilialIntBank = item.IdFilialIntBank;                       
 
                         ret.Add(documento);
                     }                    

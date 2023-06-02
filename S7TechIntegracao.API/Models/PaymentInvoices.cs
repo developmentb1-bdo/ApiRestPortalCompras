@@ -21,6 +21,8 @@ namespace S7TechIntegracao.API.Models
         public double? Saldo { get; set; }
         public string ContaDoRazao { get; set; }
         public string NomeDaConta { get; set; }
+        public string BaixaRenegociacao { get; set; }
+
         public PaymentInvoices()
         {
             InvoiceType = "it_Invoice";
