@@ -151,7 +151,7 @@ namespace S7TechIntegracao.API.Objetos
                 var hanaApi = param["HanaApi"];
 
                 var client = Conexao.GetInstance().Client;
-                var request = new RestRequest($"EmployeesInfo?$select=U_S7T_SenhaPortal&$filter=U_S7T_CodUsuario eq '{usuario}'and Active eq 'tYES'", Method.GET);
+                var request = new RestRequest($"EmployeesInfo?$select=U_S7T_SenhaPortal,U_S7T_PrimeiroAcesso&$filter=U_S7T_CodUsuario eq '{usuario}'and Active eq 'tYES'", Method.GET);
                 var response = client.Execute<RetornoListaGenerica<List<EmployeeInfo>>>(request);
 
                 if (!response.IsSuccessful)
@@ -208,39 +208,53 @@ namespace S7TechIntegracao.API.Objetos
                 throw ex;
             }
         }
-        private static byte[] _salt = Encoding.ASCII.GetBytes("o6806642kbM7c5");
+        //private static byte[] _salt = Encoding.ASCII.GetBytes("o6806642kbM7c5");
 
-        public static string EncryptStringAES(string plainText, string sharedSecret = "under")
+        public static string EncryptStringAES(string plainText)
         {
-            if (string.IsNullOrEmpty(plainText))
-                throw new ArgumentNullException(nameof(plainText));
-            if (string.IsNullOrEmpty(sharedSecret))
-                throw new ArgumentNullException(nameof(sharedSecret));
-            string str = (string)null;
-            RijndaelManaged rijndaelManaged = (RijndaelManaged)null;
-            try
+
+
+            // step 1, calculate MD5 hash from input
+            MD5 md5 = System.Security.Cryptography.MD5.Create();
+            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(plainText);
+            byte[] hash = md5.ComputeHash(inputBytes);
+
+            // step 2, convert byte array to hex string
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hash.Length; i++)
             {
-                Rfc2898DeriveBytes rfc2898DeriveBytes = new Rfc2898DeriveBytes(sharedSecret, _salt);
-                rijndaelManaged = new RijndaelManaged();
-                rijndaelManaged.Key = rfc2898DeriveBytes.GetBytes(rijndaelManaged.KeySize / 8);
-                ICryptoTransform encryptor = rijndaelManaged.CreateEncryptor(rijndaelManaged.Key, rijndaelManaged.IV);
-                using (MemoryStream memoryStream = new MemoryStream())
-                {
-                    memoryStream.Write(BitConverter.GetBytes(rijndaelManaged.IV.Length), 0, 4);
-                    memoryStream.Write(rijndaelManaged.IV, 0, rijndaelManaged.IV.Length);
-                    using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
-                    {
-                        using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
-                            streamWriter.Write(plainText);
-                    }
-                    str = Convert.ToBase64String(memoryStream.ToArray());
-                }
+                sb.Append(hash[i].ToString("X2"));
             }
-            finally
-            {
-                rijndaelManaged?.Clear();
-            }
-            return str;
+            return sb.ToString();
+            //if (string.IsNullOrEmpty(plainText))
+            //    throw new ArgumentNullException(nameof(plainText));
+            //if (string.IsNullOrEmpty(sharedSecret))
+            //    throw new ArgumentNullException(nameof(sharedSecret));
+            //string str = (string)null;
+            //RijndaelManaged rijndaelManaged = (RijndaelManaged)null;
+            //try
+            //{
+            //    Rfc2898DeriveBytes rfc2898DeriveBytes = new Rfc2898DeriveBytes(sharedSecret, _salt);
+            //    rijndaelManaged = new RijndaelManaged();
+            //    rijndaelManaged.Key = rfc2898DeriveBytes.GetBytes(rijndaelManaged.KeySize / 8);
+            //    ICryptoTransform encryptor = rijndaelManaged.CreateEncryptor(rijndaelManaged.Key, rijndaelManaged.IV);
+            //    using (MemoryStream memoryStream = new MemoryStream())
+            //    {
+            //        memoryStream.Write(BitConverter.GetBytes(rijndaelManaged.IV.Length), 0, 4);
+            //        memoryStream.Write(rijndaelManaged.IV, 0, rijndaelManaged.IV.Length);
+            //        using (CryptoStream cryptoStream = new CryptoStream((Stream)memoryStream, encryptor, CryptoStreamMode.Write))
+            //        {
+            //            using (StreamWriter streamWriter = new StreamWriter((Stream)cryptoStream))
+            //                streamWriter.Write(plainText);
+            //        }
+            //        str = Convert.ToBase64String(memoryStream.ToArray());
+            //    }
+            //}
+            //finally
+            //{
+            //    rijndaelManaged?.Clear();
+            //}
+            //return str;
         }
     }
 }

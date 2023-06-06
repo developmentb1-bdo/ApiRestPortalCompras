@@ -1,1 +1,1 @@
-﻿update OHEM set "U_S7T_SenhaPortal" = '{0}' where "Code" = {1} and "U_S7T_CodUsuario" = '{2}'
+﻿update OHEM set "U_S7T_SenhaPortal" = '{0}', "U_S7T_PrimeiroAcesso" = 'Y' where "Code" = {1} and "U_S7T_CodUsuario" = '{2}'

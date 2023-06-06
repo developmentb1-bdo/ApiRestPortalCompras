@@ -128,5 +128,7 @@ namespace S7TechIntegracao.API.Models
         public string U_S7T_TipoUsuario { get; set; }
         public string U_S7T_CodUsuario { get; set; }
         public string U_S7T_SenhaPortal { get; set; }
+        public string U_S7T_PrimeiroAcesso { get; set; }
+
     }
 }
