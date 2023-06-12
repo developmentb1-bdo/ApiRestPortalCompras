@@ -29,4 +29,4 @@ WHERE
 	and T1."Status" = 'Y'
 	and T3."U_Status" = 'Y'
 	and T4."U_Status" = 'Y'
-	and T1."ProcesStat" <> 'P'
+	and T1."ProcesStat" not in ('P','A','C')

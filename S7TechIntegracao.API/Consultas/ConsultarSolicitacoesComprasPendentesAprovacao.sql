@@ -36,8 +36,8 @@ CREATE LOCAL temporary table "#varTabelaPedidosPendentes" AS
 		AND (T1."Status" = 'W' OR(T1."Status" = 'Y'))
 		AND (T3."U_Status" = 'W' OR (T3."U_Status" = 'Y'))
 		AND T3."U_empID" = {0}
-		and T3."U_CentroCusto" != ''
-		and T1."ProcesStat" <> 'P'
+		and T3."U_CentroCusto" <>''
+		and T1."ProcesStat" not in ('P','A','C')
 	GROUP BY 
 		T0."DocEntry", 
 		T0."DocNum", 
