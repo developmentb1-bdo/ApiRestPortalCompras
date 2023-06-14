@@ -29,15 +29,15 @@ CREATE LOCAL temporary table "#varTabelaPedidosPendentes" AS
 	FROM ODRF T0
 		INNER JOIN OWDD T1 ON T1."DraftEntry" = T0."DocEntry" AND T1."ObjType" = T0."ObjType"
 		INNER JOIN "@S7T_OWDD" T2 ON T2."U_DraftEntry" = T1."DraftEntry" AND T2."U_ObjType" = T1."ObjType"
-		INNER JOIN "@S7T_WDD1" T3 ON T3."Code" = T2."Code"
+		INNER JOIN "@S7T_WDD1" T3 ON T3."Code" = T2."Code"		
 	WHERE
 		T0."ObjType" = '1470000113'
 		AND T0."CANCELED" = 'N'
-		AND (T1."Status" = 'W' OR(T1."Status" = 'Y'))
-		AND (T3."U_Status" = 'W' OR (T3."U_Status" = 'Y'))
+		AND T1."Status" in ('W','Y') 		
+        AND T3."U_Status" in ('W','Y') 
 		AND T3."U_empID" = {0}
 		and T3."U_CentroCusto" <>''
-		and T1."ProcesStat" not in ('P','A','C')
+		and T1."ProcesStat" not in ('P','A','C')		
 	GROUP BY 
 		T0."DocEntry", 
 		T0."DocNum", 

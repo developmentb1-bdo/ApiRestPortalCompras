@@ -357,28 +357,50 @@ namespace S7TechIntegracao.API.Objetos
                     ApproverPassword = paramsModel.Password
                 });
 
-                var model = JsonConvert.SerializeObject(aprovacao);
-                var client = Conexao.GetInstance().Client;
-                var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
-                request.AddParameter("application/json", model, ParameterType.RequestBody);
-                var response = client.Execute(request);
+                var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);
 
+                using (var hanaService = new HanaService())
+                {
+                   var numberDoc = hanaService.GetHanaConnection().Query<string>(query).FirstOrDefault();
 
-                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                    if (numberDoc == null)
+                    {
+                        var model = JsonConvert.SerializeObject(aprovacao);
+                        var client = Conexao.GetInstance().Client;
+                        var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                        request.AddParameter("application/json", model, ParameterType.RequestBody);
+                        var response = client.Execute(request);
 
+                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
-                //logout usuário corrente da session
-                Conexao.GetInstance().Logout();
-                //login usuário alternativo
-                Conexao.GetInstance().Login(true);
+                        //logout usuário corrente da session
+                        Conexao.GetInstance().Logout();
+                        //login usuário alternativo
+                        Conexao.GetInstance().Login(true);
 
-                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
 
-                //logout usuário alternativo
-                Conexao.GetInstance().Logout();
-                //login usuário corrente da session
-                Conexao.GetInstance().Login();
+                        //logout usuário alternativo
+                        Conexao.GetInstance().Logout();
+                        //login usuário corrente da session
+                        Conexao.GetInstance().Login();
+                    }
+                    else
+                    {
+                        //logout usuário corrente da session
+                        Conexao.GetInstance().Logout();
+                        //login usuário alternativo
+                        Conexao.GetInstance().Login(true);
+
+                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                        //logout usuário alternativo
+                        Conexao.GetInstance().Logout();
+                        //login usuário corrente da session
+                        Conexao.GetInstance().Login();
+                    }
+                }            
 
                 var esboco = DraftsObj.GetInstance().Consultar(draftKey);
                 var solicitante = EmployeesInfoObj.GetInstance().Consultar(esboco.DocumentsOwner.Value);
