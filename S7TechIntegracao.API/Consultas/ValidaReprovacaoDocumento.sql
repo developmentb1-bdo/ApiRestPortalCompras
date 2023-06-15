@@ -26,7 +26,7 @@ FROM ODRF T0
 	inner Join "@S7T_WDD1" T4 ON T4."Code" = T3."Code"		
 WHERE
 	T1."DraftEntry" = '{0}'
-	and T1."Status" = 'N'
+	and T1."Status" = 'W'
 	and T3."U_Status" = 'N'
 	and T4."U_Status" = 'N'
 	and T1."ProcesStat" not in ('P','A','C')

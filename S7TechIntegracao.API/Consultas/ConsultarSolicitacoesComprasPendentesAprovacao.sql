@@ -33,11 +33,11 @@ CREATE LOCAL temporary table "#varTabelaPedidosPendentes" AS
 	WHERE
 		T0."ObjType" = '1470000113'
 		AND T0."CANCELED" = 'N'
-		AND T1."Status" in ('W','Y') 		
-        AND T3."U_Status" in ('W','Y') 
+		AND ((T1."Status" = 'W' and T3."U_Status" = 'W')OR (T1."Status" = 'Y' and T3."U_Status" = 'Y'))
 		AND T3."U_empID" = {0}
-		and T3."U_CentroCusto" <>''
-		and T1."ProcesStat" not in ('P','A','C')		
+		and T3."U_CentroCusto" <> ''
+		and T1."DocEntry" is null
+		and T1."ProcesStat" not in ('P','A','C','N')		
 	GROUP BY 
 		T0."DocEntry", 
 		T0."DocNum", 
