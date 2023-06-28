@@ -199,10 +199,10 @@ namespace S7TechIntegracao.API.Objetos
                     var grupoCentroCusto = docEsboco.DocumentLines.GroupBy(t => t.CostingCode2).ToList();
 
                     foreach (var item in grupoCentroCusto)
-                    {                        
+                    {
                         using (var hanaService = new HanaService())
                         {
-                            query2 = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoSolicitacaoCompras"),item.Key ,tipoDoc);
+                            query2 = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoSolicitacaoCompras"), item.Key, tipoDoc);
                             using (var dt = hanaService.ExecuteDataTable(query2))
                             {
                                 foreach (System.Data.DataRow row in dt.Rows)
@@ -222,9 +222,9 @@ namespace S7TechIntegracao.API.Objetos
                             }
                         }
                     }
-                    
+
                 }
-            
+
                 s7OWDD.U_MaxReqr = s7OWDD.Aprovadores.Count;
 
                 return s7OWDD;
@@ -357,50 +357,90 @@ namespace S7TechIntegracao.API.Objetos
                     ApproverPassword = paramsModel.Password
                 });
 
-                var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);
-
                 using (var hanaService = new HanaService())
                 {
-                   var numberDoc = hanaService.GetHanaConnection().Query<string>(query).FirstOrDefault();
+                    var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);
 
-                    if (numberDoc == null)
+                    //var numberDoc = hanaService.GetHanaConnection().Query<string>(query).ToList();
+
+                    using (var dt = hanaService.ExecuteDataTable(query))
                     {
-                        var model = JsonConvert.SerializeObject(aprovacao);
-                        var client = Conexao.GetInstance().Client;
-                        var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
-                        request.AddParameter("application/json", model, ParameterType.RequestBody);
-                        var response = client.Execute(request);
+                        foreach (System.Data.DataRow row in dt.Rows)
+                        {
 
-                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                            var s7OWDD = new S7T_OWDD() {
+                                U_DraftEntry = Convert.ToInt32(row["DraftEntry"]),
+                                U_Status = Convert.ToString(row["Status"])
+                            };
+                            var numberDoc = s7OWDD.U_DraftEntry;
+                            var status = s7OWDD.U_Status;
+                            
 
-                        //logout usuário corrente da session
-                        Conexao.GetInstance().Logout();
-                        //login usuário alternativo
-                        Conexao.GetInstance().Login(true);
+                            if (numberDoc == 0)
+                            {
+                                var model = JsonConvert.SerializeObject(aprovacao);
+                                var client = Conexao.GetInstance().Client;
+                                var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                var response = client.Execute(request);
 
-                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
-                        //logout usuário alternativo
-                        Conexao.GetInstance().Logout();
-                        //login usuário corrente da session
-                        Conexao.GetInstance().Login();
+                                //logout usuário corrente da session
+                                Conexao.GetInstance().Logout();
+                                //login usuário alternativo
+                                Conexao.GetInstance().Login(true);
+
+                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                //logout usuário alternativo
+                                Conexao.GetInstance().Logout();
+                                //login usuário corrente da session
+                                Conexao.GetInstance().Login();
+                            }
+                            else if ((numberDoc != 0 && status == "W"))
+                            {
+                                var model = JsonConvert.SerializeObject(aprovacao);
+                                var client = Conexao.GetInstance().Client;
+                                var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                var response = client.Execute(request);
+
+                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                                //logout usuário corrente da session
+                                Conexao.GetInstance().Logout();
+                                //login usuário alternativo
+                                Conexao.GetInstance().Login(true);
+
+                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                //logout usuário alternativo
+                                Conexao.GetInstance().Logout();
+                                //login usuário corrente da session
+                                Conexao.GetInstance().Login();
+                            }
+                            else
+                            {
+                                //logout usuário corrente da session
+                                Conexao.GetInstance().Logout();
+                                //login usuário alternativo
+                                Conexao.GetInstance().Login(true);
+
+                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                //logout usuário alternativo
+                                Conexao.GetInstance().Logout();
+                                //login usuário corrente da session
+                                Conexao.GetInstance().Login();
+                            }
+                        }
                     }
-                    else
-                    {
-                        //logout usuário corrente da session
-                        Conexao.GetInstance().Logout();
-                        //login usuário alternativo
-                        Conexao.GetInstance().Login(true);
 
-                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                        //logout usuário alternativo
-                        Conexao.GetInstance().Logout();
-                        //login usuário corrente da session
-                        Conexao.GetInstance().Login();
-                    }
-                }            
+                   
+                }
 
                 var esboco = DraftsObj.GetInstance().Consultar(draftKey);
                 var solicitante = EmployeesInfoObj.GetInstance().Consultar(esboco.DocumentsOwner.Value);
