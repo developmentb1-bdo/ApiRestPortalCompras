@@ -128,7 +128,7 @@ namespace S7TechIntegracao.API.Objetos
                 var hanaApi = param["HanaApi"];
 
                 var client = Conexao.GetInstance().Client;                
-                var request = new RestRequest($"EmployeesInfo?$filter=U_S7T_CodUsuario eq '{usuario}'and Active eq 'tYES'", Method.GET);
+                var request = new RestRequest($"EmployeesInfo?$filter=U_S7T_CodUsuario eq '{usuario}' and U_S7T_SenhaPortal eq '{senha}' and Active eq 'tYES'", Method.GET);
                 var response = client.Execute<RetornoListaGenerica<List<EmployeeInfo>>>(request);
 
                 if (!response.IsSuccessful)
@@ -143,29 +143,29 @@ namespace S7TechIntegracao.API.Objetos
                 throw ex;
             }
         }
-        public EmployeeInfo GetByPassEncryptedUser(string usuario)
-        {
-            try
-            {
-                var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
-                var hanaApi = param["HanaApi"];
+        //public EmployeeInfo GetByPassEncryptedUser(string usuario)
+        //{
+        //    try
+        //    {
+        //        var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+        //        var hanaApi = param["HanaApi"];
 
-                var client = Conexao.GetInstance().Client;
-                var request = new RestRequest($"EmployeesInfo?$select=U_S7T_SenhaPortal,U_S7T_PrimeiroAcesso&$filter=U_S7T_CodUsuario eq '{usuario}'and Active eq 'tYES'", Method.GET);
-                var response = client.Execute<RetornoListaGenerica<List<EmployeeInfo>>>(request);
+        //        var client = Conexao.GetInstance().Client;
+        //        var request = new RestRequest($"EmployeesInfo?$select=U_S7T_SenhaPortal,U_S7T_PrimeiroAcesso&$filter=U_S7T_CodUsuario eq '{usuario}'and Active eq 'tYES'", Method.GET);
+        //        var response = client.Execute<RetornoListaGenerica<List<EmployeeInfo>>>(request);
 
-                if (!response.IsSuccessful)
-                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+        //        if (!response.IsSuccessful)
+        //            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
-                return response.Data.value.FirstOrDefault();
-            }
-            catch (Exception ex)
-            {
-                Log4Net.Log.Error($"[EmployeesInfoObj] [ConsultarEmail] {ex.Message}");
+        //        return response.Data.value.FirstOrDefault();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Log4Net.Log.Error($"[EmployeesInfoObj] [ConsultarEmail] {ex.Message}");
 
-                throw ex;
-            }
-        }
+        //        throw ex;
+        //    }
+        //}
 
         public void AtualizarSenhaParaEncriptadaDoUsuario()
         {

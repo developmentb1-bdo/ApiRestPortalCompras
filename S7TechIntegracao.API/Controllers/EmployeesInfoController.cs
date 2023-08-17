@@ -78,34 +78,34 @@ namespace S7TechIntegracao.API.Controllers
             }
         }
 
-        [HttpGet]
-        [SwaggerOperation("Get")]
-        [Route("api/EmployeesInfo/GetPassEncryptedUser")]
-        public async Task<IHttpActionResult> GetByPassEncryptedUser([FromUri] string usuario)
-        {
-            Conexao.GetInstance().Login();
-            var sessionId = Conexao.GetInstance().SessionId;
+        //[HttpGet]
+        //[SwaggerOperation("Get")]
+        //[Route("api/EmployeesInfo/GetPassEncryptedUser")]
+        //public async Task<IHttpActionResult> GetByPassEncryptedUser([FromUri] string usuario)
+        //{
+        //    Conexao.GetInstance().Login();
+        //    var sessionId = Conexao.GetInstance().SessionId;
 
-            try
-            {
+        //    try
+        //    {
 
-                var ret = EmployeesInfoObj.GetInstance().GetByPassEncryptedUser(usuario);
+        //        var ret = EmployeesInfoObj.GetInstance().GetByPassEncryptedUser(usuario);
 
-                return Ok(ret);
-            }
-            catch (Exception ex)
-            {
-                try
-                {
-                    var jsonObj = JObject.Parse(ex.Message);
-                    return Content(HttpStatusCode.BadRequest, jsonObj);
-                }
-                catch (Exception e)
-                {
-                    return Content(HttpStatusCode.BadRequest, e.Message);
-                }
-            }
-        }
+        //        return Ok(ret);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        try
+        //        {
+        //            var jsonObj = JObject.Parse(ex.Message);
+        //            return Content(HttpStatusCode.BadRequest, jsonObj);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            return Content(HttpStatusCode.BadRequest, e.Message);
+        //        }
+        //    }
+        //}
 
         [HttpPost]
         [SwaggerOperation("PostModel")]
