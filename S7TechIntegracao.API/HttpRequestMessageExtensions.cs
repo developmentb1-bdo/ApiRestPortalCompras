@@ -88,6 +88,7 @@ namespace S7TechIntegracao.API
             //    return scheme + "://" + authority;
             //}
 
+            //var uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
             var uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
 
             return uriBase;
