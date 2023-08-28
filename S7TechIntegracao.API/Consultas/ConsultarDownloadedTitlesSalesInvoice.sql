@@ -15,7 +15,7 @@ INNER JOIN INV6 B ON B."DocEntry" = A."DocEntry"
 INNER JOIN OBPL C ON C."BPLId" = A."BPLId"
 INNER JOIN RCT2 D ON D."DocEntry" = A."DocEntry"
 inner JOIN ORCT E ON E."DocEntry" = D."DocNum"
-INNER JOIN "IntegrationBank"."IV_IB_CompanyLocal" F ON F."BPLId" = A."BPLId" and "CompanyDb" = '{3}'
+LEFT JOIN "IntegrationBank"."IV_IB_CompanyLocal" F ON F."BPLId" = A."BPLId" and "CompanyDb" = '{3}'
 WHERE
 B."TotalBlck" <> B."InsTotal"
 AND (B."Status" = 'C' OR (B."Status" = 'O' AND E."Canceled" = 'Y') OR (B."Status" = 'O' AND A."PaidToDate" > 0) )

@@ -16,7 +16,7 @@
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <MvcBuildViews>false</MvcBuildViews>
     <UseIISExpress>false</UseIISExpress>
-    <Use64BitIISExpress>false</Use64BitIISExpress>
+    <Use64BitIISExpress>true</Use64BitIISExpress>
     <IISExpressSSLPort>44388</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication />
     <IISExpressWindowsAuthentication />
@@ -530,7 +530,7 @@
     <EmbeddedResource Include="Consultas\ConsultarOpenTitlesSalesInvoice.sql" />
     <EmbeddedResource Include="Consultas\ConsultarInfoNFSeSKILL.sql" />
     <EmbeddedResource Include="Consultas\ConsultarIDBoletoInvent.sql" />
-    <EmbeddedResource Include="Consultas\ConsultarClosedTitlesSalesInvoice.sql" />
+    <EmbeddedResource Include="Consultas\ConsultarDownloadedTitlesSalesInvoice.sql" />
     <EmbeddedResource Include="Consultas\ConsultarPaymentsTitlesSalesInvoice.sql" />
     <EmbeddedResource Include="Consultas\ConsultarTitlesCanceledOrClosedSalesInvoice.sql" />
     <EmbeddedResource Include="Consultas\ConsultarCodeOWDD.sql" />

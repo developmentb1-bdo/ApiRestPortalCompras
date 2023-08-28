@@ -316,7 +316,7 @@ namespace S7TechIntegracao.API.Objetos
                 {
                     idDocumento = "";
                 }                
-                var query = string.Format(S7Tech.GetConsultas("ConsultarClosedTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, companyDb, limit, offSet);
+                var query = string.Format(S7Tech.GetConsultas("ConsultarDownloadedTitlesSalesInvoice"), dataDocumento, cardCode, idDocumento, companyDb, limit, offSet);
 
                 using (var hanaService = new HanaService())
                 {
