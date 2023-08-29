@@ -225,6 +225,7 @@ namespace S7TechIntegracao.API.Objetos
                         documento.FederalTaxID = item.FederalTaxID;
                         documento.Cancelled = item.Cancelled;
                         documento.IdFilialIntBank = item.IdFilialIntBank;
+                        documento.InscMunicipalFilial = item.InscMunicipalFilial;
 
                         query = string.Format(S7Tech.GetConsultas("ConsultarInfoNFSeSKILL"), documento.DocEntry);
                         using (var hanaService = new HanaService())
@@ -234,7 +235,10 @@ namespace S7TechIntegracao.API.Objetos
                         foreach (var item1 in retDocEntry1)
                         {
                             documento.U_CodigoVerificador = item1.U_CodigoVerificador;
-                            documento.NumNfse = item1.NumNfse;                            
+                            documento.NumNfse = item1.NumNfse;
+                            documento.U_LinlNFSe = item1.U_LinlNFSe;
+                            documento.U_NrRPS = item.U_NrRPS; 
+
                         }
                         query = string.Format(S7Tech.GetConsultas("ConsultarIDBoletoInvent"), documento.DocEntry);
                         using (var hanaService = new HanaService())
@@ -331,6 +335,7 @@ namespace S7TechIntegracao.API.Objetos
                         documento.Cancelled = item.Cancelled;
                         documento.Saldo = Math.Round((double)(documento.DocTotal - documento.PaidToDate), 2);
                         documento.IdFilialIntBank = item.IdFilialIntBank;
+                        documento.InscMunicipalFilial = item.InscMunicipalFilial;
                         //documento.FederalTaxID = item.FederalTaxID;
 
                         query = string.Format(S7Tech.GetConsultas("ConsultarInfoNFSeSKILL"), documento.DocEntry);
@@ -343,6 +348,8 @@ namespace S7TechIntegracao.API.Objetos
                         {
                             documento.U_CodigoVerificador = item1.U_CodigoVerificador;
                             documento.NumNfse = item1.NumNfse;
+                            documento.U_LinlNFSe = item1.U_LinlNFSe;
+                            documento.U_NrRPS = item.U_NrRPS;
                         }
                         query = string.Format(S7Tech.GetConsultas("ConsultarPaymentsTitlesSalesInvoice"), documento.DocEntry,companyDb);
                         using (var hanaService = new HanaService())

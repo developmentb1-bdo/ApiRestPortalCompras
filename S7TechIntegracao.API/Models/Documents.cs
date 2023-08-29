@@ -81,6 +81,7 @@ namespace S7TechIntegracao.API.Models
         public int? BPL_IDAssignedToInvoice { get; set; }
         public string BPLName { get; set; }
         public int IdFilialIntBank { get; set; }
+        public string InscMunicipalFilial { get; set; }
         public int? SequenceCode { get; set; }
         public int? SequenceSerial { get; set; }     
         public string SeriesString { get; set; }
@@ -138,6 +139,8 @@ namespace S7TechIntegracao.API.Models
         public string U_S7T_EnvEmailMala { get; set; }
         public string U_CodigoVerificador { get; set; }
         public string NumNfse { get; set; }
+        public string U_LinlNFSe { get; set; }
+        public string U_NrRPS { get; set; }     
         public string HourCreateTitle { get; set; }        
         public List<BoletoPdf> boletos { get; set; }
         public List<DocumentLines> DocumentLines { get; set; }

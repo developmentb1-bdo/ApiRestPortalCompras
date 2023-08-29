@@ -8,7 +8,8 @@ C."TaxIdNum" as "FederalTaxId",
 A."CreateDate" as "CreateDateSales", 
 A."DocTime" as "CreateHourSales",
 TO_VARCHAR (TO_DATE(E."DocDate"), 'YYYYMMDD')|| ':'|| E."DocTime"  as "CreateDate"  ,
-F."Id" as "IdFilialIntBank"
+F."Id" as "IdFilialIntBank",
+C."AddtnlId" as "InscMunicipalFilial"
 FROM
 OINV A
 INNER JOIN INV6 B ON B."DocEntry" = A."DocEntry"
@@ -23,7 +24,7 @@ AND D."DocEntry" is not null
 {0}
 {1}
 {2}
-group by   A."DocEntry", A."CreateDate", A."DocTime", A."CardCode", A."DocNum", C."TaxIdNum",A."CANCELED", E."DocDate", E."DocTime",E."CreateDate",F."Id"
+group by   A."DocEntry", A."CreateDate", A."DocTime", A."CardCode", A."DocNum", C."TaxIdNum",A."CANCELED", E."DocDate", E."DocTime",E."CreateDate",F."Id",C."AddtnlId"
 order by E."CreateDate", E."DocTime" asc
 LIMIT {4} offset {5};
 
