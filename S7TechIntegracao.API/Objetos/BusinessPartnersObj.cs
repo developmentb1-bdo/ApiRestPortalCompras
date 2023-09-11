@@ -167,7 +167,9 @@ namespace S7TechIntegracao.API.Objetos
                 {
                     throw new Exception("Parametro de Operação incorreto, informar {C} para criados e {U} para atualizado");
                 }
-                var request = new RestRequest($"BusinessPartners?$skip={offSet}&$filter={dataFilter} and CardType eq 'C' and CurrentAccountBalance gt 0", Method.GET);
+                //var request = new RestRequest($"BusinessPartners?$skip={offSet}&$filter={dataFilter} and CardType eq 'C' and CurrentAccountBalance gt 0", Method.GET);
+
+                var request = new RestRequest($"BusinessPartners?$skip={offSet}&$filter={dataFilter} and CardType eq 'C'", Method.GET);
                 var response = client.Execute<RetornoListaGenerica<List<BusinessPartners>>>(request);
                 var ret = JsonConvert.DeserializeObject<RetornoListaGenerica<List<BusinessPartners>>>(response.Content);
 
