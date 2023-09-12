@@ -7,6 +7,7 @@ namespace S7TechIntegracao.API.Models
 {
     public class DocumentInstallments
     {
+        public int DocEntry { get; set; }
         public DateTime? DueDate { get; set; }
         public double? Percentage { get; set; }
         public double? Total { get; set; }
@@ -17,6 +18,8 @@ namespace S7TechIntegracao.API.Models
         public string PaymentOrdered { get; set; }
         public string U_IB_GerarBoleto { get; set; }
         public string OpeningRemarks { get; set; }
+        public string Baixado { get; set; }
+        
 
     }
 }

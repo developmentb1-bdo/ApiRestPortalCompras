@@ -1,4 +1,6 @@
 ﻿using Dapper;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using RestSharp;
 using S7TechIntegracao.API.Models;
 using S7TechIntegracao.API.Utils;
@@ -183,6 +185,7 @@ namespace S7TechIntegracao.API.Objetos
                 var ret = new List<Documents>();               
                 var retDocEntry1 = new List<Documents>();
                 var retBoleto = new List<BoletoLista>();
+                var retPagamentos = new List<DocumentInstallments>();
 
                 var dataDocumento = $@"AND ((TO_VARCHAR (TO_DATE(A.""CreateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}') OR (TO_VARCHAR (TO_DATE(A.""UpdateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}'))";
                 var idDocumento =  $@"AND A.""DocEntry"" =  '{docEntry}' ";
@@ -238,8 +241,46 @@ namespace S7TechIntegracao.API.Objetos
                             documento.NumNfse = item1.NumNfse;
                             documento.U_LinlNFSe = item1.U_LinlNFSe;
                             documento.U_NrRPS = item.U_NrRPS; 
+                        }                   
+                       
+                        List<DocumentInstallments> documentInstallments = new List<DocumentInstallments>();
 
+                        foreach (var item4 in documento.DocumentInstallments)
+                        {   
+                            
+                            DocumentInstallments pag = new DocumentInstallments();                       
+                            
+                            var query1 = string.Format(S7Tech.GetConsultas("ConsultarTitlesPaidOutSalesInvoice"), documento.DocEntry, item4.InstallmentId);
+
+                            using (var hanaService = new HanaService())
+                            {
+                                retPagamentos = hanaService.GetHanaConnection().Query<DocumentInstallments>(query1).ToList();
+
+                                foreach (var item5 in retPagamentos)
+                                {
+                                    pag.DocEntry = documento.DocEntry;
+                                    pag.Baixado = item5.Baixado;
+                                    pag.InstallmentId = item4.InstallmentId;
+                                    pag.Percentage = item4.Percentage;
+                                    pag.OpeningRemarks = item.OpeningRemarks;
+                                    pag.DueDate = item4.DueDate;
+                                    pag.Total = item4.Total;
+                                    pag.TotalFC = item4.TotalFC;
+                                    pag.U_IB_GerarBoleto = item4.U_IB_GerarBoleto;
+                                    pag.LastDunningDate = item4.LastDunningDate;
+                                    pag.PaymentOrdered = item4.PaymentOrdered;
+                                    pag.DunningLevel = item4.DunningLevel;
+                                }
+                             
+                            }   
+                           documentInstallments.Add(pag);                            
                         }
+                        documento.DocumentInstallments.RemoveAll(i => i.DocEntry == documento.DocEntry);
+                        
+                        documento.DocumentInstallments = documentInstallments;
+
+                        ret.Add(documento);
+
                         query = string.Format(S7Tech.GetConsultas("ConsultarIDBoletoInvent"), documento.DocEntry);
                         using (var hanaService = new HanaService())
                         {

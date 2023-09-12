@@ -543,6 +543,7 @@
     <EmbeddedResource Include="Consultas\ConsultarGatilhoSegmento.sql" />
     <EmbeddedResource Include="Consultas\ConsultarColaborador.sql" />
     <EmbeddedResource Include="Consultas\AtualizarUsuarioSenhaEncripitada.sql" />
+    <EmbeddedResource Include="Consultas\ConsultarTitlesPaidOutSalesInvoice.sql" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Layouts\defaultPurchaseOrder.xslt" />
