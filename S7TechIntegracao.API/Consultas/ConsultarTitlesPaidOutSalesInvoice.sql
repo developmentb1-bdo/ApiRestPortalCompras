@@ -1,8 +1,8 @@
 ﻿select 
 case when ((T3."PaidToDate" - T3."InsTotal") = 0 ) then
-	 'N'
+	 'Y'
 	 else
-	  'Y'	 
+	  'N'	 
 	 end as "Baixado"
 	 from  INV6 T3
 	 where  T3."DocEntry" = {0} 
