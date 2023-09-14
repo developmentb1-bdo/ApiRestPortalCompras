@@ -27,7 +27,7 @@ left JOIN RCT2 T1 ON T0."DocEntry" = T1."DocNum"
 left join OINV T2 on T1."DocEntry" = T2."DocEntry" 
 left join INV6 T3 on T3."DocEntry" = T2."DocEntry" and T1."InstId" = T3."InstlmntID"
 left join OACT T4 on T4."AcctCode" = T0."TrsfrAcct" or T4."AcctCode" = T0."CashAcct"
-INNER JOIN "IntegrationBank"."IV_IB_CompanyLocal" T6 ON T6."BPLId" = T0."BPLId" and T6."CompanyDb" = '{1}'
+left JOIN "IntegrationBank"."IV_IB_CompanyLocal" T6 ON T6."BPLId" = T0."BPLId" and T6."CompanyDb" = '{1}'
 left JOIN "IntegrationBank"."IV_IB_RenegociacaoParametro" T5 ON T5."EmpresaId" = T6."Id"
 where  T1."InvType"  = 13
 AND T2."DocEntry" = '{0}'
