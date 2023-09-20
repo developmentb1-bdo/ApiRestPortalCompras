@@ -12,9 +12,10 @@ OINV A
 INNER JOIN INV6 B ON B."DocEntry" = A."DocEntry"
 INNER JOIN OBPL C ON C."BPLId" = A."BPLId"
 Left JOIN "IntegrationBank"."IV_IB_CompanyLocal" D ON D."BPLId" = A."BPLId" and "CompanyDb" = '{3}'
+left join INV1 F on F."BaseEntry" = A."DocEntry"
+left Join OINV E on E."CANCELED" = 'C' and E."DocEntry" = F."DocEntry"
 WHERE
 B."TotalBlck" <> B."InsTotal"
-AND (A."CANCELED" ='Y' OR(A."CANCELED" ='N' and A."DocStatus" = 'C'))
 {0}
 {1}
 {2}

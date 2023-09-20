@@ -437,7 +437,8 @@ namespace S7TechIntegracao.API.Objetos
                 var ret = new List<Documents>();
                 var retDocEntry1 = new List<Documents>();              
                               
-                var dataDocumento = $@"AND (TO_VARCHAR (TO_DATE(A.""CreateDate""), 'YYYYMMDD')|| ':'|| A.""DocTime"" > '{date}:{hour}' OR TO_VARCHAR(TO_DATE(A.""UpdateDate""), 'YYYYMMDD') >='{date}') ";
+                var dataDocumento = $@"and((A.""CANCELED"" ='Y' AND F.""BaseRef"" = A.""DocNum"" and TO_VARCHAR (TO_DATE(E.""CreateDate""), 'YYYYMMDD')|| ':'|| E.""DocTime"" >= '{date}:{hour}')
+OR(TO_VARCHAR(TO_DATE(A.""UpdateDate""), 'YYYYMMDD') >='{date}'and A.""CANCELED"" ='N' and A.""DocStatus"" = 'C')) ";
                 var idDocumento = $@"AND A.""DocEntry"" =  '{docEntry}' ";
                 var cardCode = $@"AND A.""CardCode"" = '{codigoCliente}'";
                 var parametroSap = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
