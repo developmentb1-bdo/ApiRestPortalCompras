@@ -650,7 +650,9 @@
           <AutoAssignPort>True</AutoAssignPort>
           <DevelopmentServerPort>55029</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost/S7TechIntegracao.API</IISUrl>
+          <IISUrl>http://localhost:55029</IISUrl>
+          <OverrideIISAppRootUrl>True</OverrideIISAppRootUrl>
+          <IISAppRootUrl>http://localhost:55029</IISAppRootUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>
