@@ -1,6 +1,7 @@
 ﻿SELECT {1}
 	T0."PrjCode" AS "Code",
-	T0."PrjName" AS "Name"
+	T0."PrjName" AS "Name",
+	 T0."Active" AS "Active"
 FROM OPRJ T0
 WHERE
 	T0."Locked" = 'N'

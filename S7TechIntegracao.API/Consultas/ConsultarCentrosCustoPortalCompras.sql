@@ -1,6 +1,7 @@
 ﻿SELECT {1}
-	T0."PrcCode" AS "CenterCode",
-	T0."PrcName" AS "CenterName"
+	T0."PrcCode" AS "FactorCode",
+	T0."PrcName" AS "FactorDescription",
+	T0."Active" as "Active"
 FROM OPRC T0
 WHERE
 	T0."Locked" = 'N'
