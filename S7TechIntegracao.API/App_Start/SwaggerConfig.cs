@@ -29,7 +29,7 @@ namespace S7TechIntegracao.API
 
                     c.RootUrl(req => req.ComputeHostAsSeenByOriginalClient());
 
-                    c.SingleApiVersion("v1", "Web API S7TechIntegracao");
+                    c.SingleApiVersion("v1", "Web API BdoIntegracao");
 
                     c.PrettyPrint();
 
