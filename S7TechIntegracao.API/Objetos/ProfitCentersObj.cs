@@ -54,7 +54,7 @@ namespace S7TechIntegracao.API.Objetos
                 var hanaApi = param["HanaApi"];
 
                 var client = Conexao.GetInstance().Client;
-                var request = new RestRequest($"ProfitCenters('{code}')", Method.GET);
+                var request = new RestRequest($"ProfitCenters('{code}')?$filter=Active eq 'tYES'", Method.GET);
                 var response = client.Execute<ProfitCenter>(request);
 
                 if (!response.IsSuccessful)

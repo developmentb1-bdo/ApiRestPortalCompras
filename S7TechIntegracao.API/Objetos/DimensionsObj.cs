@@ -52,7 +52,7 @@ namespace S7TechIntegracao.API.Objetos
                 var hanaApi = param["HanaApi"];
 
                 var client = Conexao.GetInstance().Client;
-                var request = new RestRequest($"Dimensions({id})", Method.GET);
+                var request = new RestRequest($"Dimensions({id})?$filter=IsActive eq 'tYES'", Method.GET);
                 var response = client.Execute<Dimension>(request);
 
                 if (!response.IsSuccessful)

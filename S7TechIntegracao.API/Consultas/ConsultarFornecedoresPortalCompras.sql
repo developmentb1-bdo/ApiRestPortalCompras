@@ -16,4 +16,5 @@ AND T1."Address" = ''
 AND T1."AddrType" = 'S'
 AND T0."frozenFor" = 'N'
 WHERE T0."CardType" = 'S' 
+AND T0."validFor" = 'Y'
 order by T1."CardCode"

@@ -74,7 +74,7 @@ namespace S7TechIntegracao.API.Objetos
                 var hanaApi = param["HanaApi"];
 
                 var client = Conexao.GetInstance().Client;
-                var request = new RestRequest($"BusinessPlaces({id})", Method.GET);
+                var request = new RestRequest($"BusinessPlaces({id})?$filter=Disabled eq 'tNO'", Method.GET);
                 var response = client.Execute<BusinessPlace>(request);
 
                 if (!response.IsSuccessful)
