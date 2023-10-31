@@ -53,8 +53,30 @@ namespace S7TechIntegracao.API.Objetos
 
                     var ret = JsonConvert.DeserializeObject<S7T_OWDD>(response.Data);
 
-                    if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                        throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                    var query = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoVazia"), draftEntry);
+
+                    using (var hanaService = new HanaService())
+                    {
+                        var dt = hanaService.ExecuteDataTable(query);
+
+                        if (dt.Rows.Count == 0)
+                        {
+
+                            //logout usuário corrente da session
+                            Conexao.GetInstance().Logout();
+                            //login usuário alternativo
+                            Conexao.GetInstance().Login(true);
+
+                            request = new RestRequest($"S7T_OWDD", Method.POST);
+                            request.AddParameter("application/json", model, ParameterType.RequestBody);
+                            response = client.Execute<string>(request);
+
+                            ret = JsonConvert.DeserializeObject<S7T_OWDD>(response.Data);
+
+                            if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                        }
+                    }                  
 
                     return ret;
                 }
