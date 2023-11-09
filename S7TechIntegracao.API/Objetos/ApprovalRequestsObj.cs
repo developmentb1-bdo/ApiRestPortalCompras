@@ -1,6 +1,8 @@
 ﻿using Dapper;
+using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 using RestSharp;
+using RestSharp.Extensions;
 using S7TechIntegracao.API.Models;
 using S7TechIntegracao.API.Utils;
 using System;
@@ -44,6 +46,8 @@ namespace S7TechIntegracao.API.Objetos
 
                     var client = Conexao.GetInstance().Client;
 
+                    dynamic ret = "";
+
                     var b1Session = client.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
                     Log4Net.Log.Debug($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] [Sessão {b1Session.Value}]");
 
@@ -51,32 +55,50 @@ namespace S7TechIntegracao.API.Objetos
                     request.AddParameter("application/json", model, ParameterType.RequestBody);
                     var response = client.Execute<string>(request);
 
-                    var ret = JsonConvert.DeserializeObject<S7T_OWDD>(response.Data);
+                    dynamic validError = JsonConvert.DeserializeObject(response.Content); 
 
-                    var query = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoVazia"), draftEntry);
+                    var errorCode = validError["error"];
+                    string codeError = Convert.ToString(validError["error"]);
 
-                    using (var hanaService = new HanaService())
+                    if (!string.IsNullOrEmpty(codeError))
                     {
-                        var dt = hanaService.ExecuteDataTable(query);
+                        var retDadosSL = errorCode["message"];
+                        var retDadosSLCode = errorCode["code"];
 
-                        if (dt.Rows.Count == 0)
+                        if (retDadosSLCode == 301)
                         {
-
                             //logout usuário corrente da session
                             Conexao.GetInstance().Logout();
                             //login usuário alternativo
                             Conexao.GetInstance().Login(true);
 
-                            request = new RestRequest($"S7T_OWDD", Method.POST);
-                            request.AddParameter("application/json", model, ParameterType.RequestBody);
-                            response = client.Execute<string>(request);
+                            var sessionId = Conexao.GetInstance().SessionId;
 
-                            ret = JsonConvert.DeserializeObject<S7T_OWDD>(response.Data);
+                            var client1 = Conexao.GetInstance().Client;
 
-                            if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                            var b1Session1 = client1.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
+                            Log4Net.Log.Debug($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] [Sessão {b1Session1.Value}]");
+
+                            var query = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoVazia"), draftEntry, s7OWDD.U_ObjType);
+
+                            using (var hanaService = new HanaService())
+                            {
+                                var dt = hanaService.ExecuteDataTable(query);
+
+                                if (dt.Rows.Count == 0)
+                                {
+                                    request = new RestRequest($"S7T_OWDD", Method.POST);
+                                    request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                    response = client1.Execute<string>(request); 
+                                }
+                            }
                         }
-                    }                  
+                    }
+
+                    if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                        throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                    ret = JsonConvert.DeserializeObject<S7T_OWDD>(response.Data);
 
                     return ret;
                 }

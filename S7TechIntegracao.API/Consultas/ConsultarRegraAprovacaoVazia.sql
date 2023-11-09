@@ -11,3 +11,4 @@
 FROM "@S7T_OWDD" T0
 	INNER JOIN "@S7T_WDD1" T1 ON T1."Code" = T0."Code"
 WHERE T0."U_DraftEntry" = {0}
+and T0."U_ObjType" ={1}
