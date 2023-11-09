@@ -25,7 +25,7 @@ FROM OPRQ T0
 WHERE
 	T0."ReqType" = 171
 	AND T0."Requester" = '{0}' 	
-	AND T0."DataSource" = 'O'	
+	--AND T0."DataSource" = 'O'	
 UNION
 
 SELECT
@@ -61,7 +61,7 @@ WHERE
 	T0."ObjType" = '1470000113'	
 	AND T1."Status" <> 'Y'
 	AND T0."Requester" = '{0}' 
-	AND T0."DataSource" = 'O'
+	--AND T0."DataSource" = 'O'
 	
 ORDER BY "U_S7T_DataSolicitacao" DESC
 LIMIT {1} offset {2};
