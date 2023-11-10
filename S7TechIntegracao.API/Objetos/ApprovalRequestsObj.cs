@@ -388,6 +388,8 @@ namespace S7TechIntegracao.API.Objetos
 
                 var paramsModel = ParamsModel.GetInstance();
 
+               
+
                 var aprovacao = new ApprovalRequest
                 {
                     Status = "arsApproved"
@@ -418,7 +420,6 @@ namespace S7TechIntegracao.API.Objetos
                             };
                             var numberDoc = s7OWDD.U_DraftEntry;
                             var status = s7OWDD.U_Status;
-                            
 
                             if (numberDoc == 0)
                             {
@@ -428,20 +429,49 @@ namespace S7TechIntegracao.API.Objetos
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
                                 var response = client.Execute(request);
 
-                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                                dynamic validError = JsonConvert.DeserializeObject(response.Content);
+                                var errorCode = validError["error"];
+                                string codeError = Convert.ToString(validError["error"]);
 
-                                //logout usuário corrente da session
-                                Conexao.GetInstance().Logout();
-                                //login usuário alternativo
-                                Conexao.GetInstance().Login(true);
+                                if (!string.IsNullOrEmpty(codeError))
+                                {
+                                    var retDadosSL = errorCode["message"];
+                                    var retDadosSLCode = errorCode["code"];
 
-                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                    if (retDadosSLCode == 301)
+                                    {
+                                        //logout usuário corrente da session
+                                        Conexao.GetInstance().Logout();
+                                        //login usuário alternativo
+                                        Conexao.GetInstance().Login(true);
 
-                                //logout usuário alternativo
-                                Conexao.GetInstance().Logout();
-                                //login usuário corrente da session
-                                Conexao.GetInstance().Login();
+                                        model = JsonConvert.SerializeObject(aprovacao);
+                                        client = Conexao.GetInstance().Client;
+                                        request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                        request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                        response = client.Execute(request);
+
+                                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                    }
+                                }
+                                else
+                                {
+                                    //logout usuário corrente da session
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário alternativo
+                                    Conexao.GetInstance().Login(true);
+
+                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                    //logout usuário alternativo
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário corrente da session
+                                    Conexao.GetInstance().Login();
+                                }
                             }
                             else if ((numberDoc != 0 && status == "W"))
                             {
