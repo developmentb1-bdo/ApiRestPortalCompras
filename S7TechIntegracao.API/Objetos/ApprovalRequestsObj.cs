@@ -65,7 +65,7 @@ namespace S7TechIntegracao.API.Objetos
                         var retDadosSL = errorCode["message"];
                         var retDadosSLCode = errorCode["code"];
 
-                        if (retDadosSLCode == 301)
+                        if (retDadosSLCode == 301 || retDadosSLCode == 401)
                         {
                             //logout usuário corrente da session
                             Conexao.GetInstance().Logout();
