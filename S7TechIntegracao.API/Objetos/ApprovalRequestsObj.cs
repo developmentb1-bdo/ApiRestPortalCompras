@@ -105,7 +105,7 @@ namespace S7TechIntegracao.API.Objetos
             }
             catch (Exception ex)
             {
-                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message}");
+                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message} + {draftEntry}");
                 throw ex;
             }
         }
@@ -438,7 +438,7 @@ namespace S7TechIntegracao.API.Objetos
                                     var retDadosSL = errorCode["message"];
                                     var retDadosSLCode = errorCode["code"];
 
-                                    if (retDadosSLCode == 301)
+                                    if (retDadosSLCode == 301 || retDadosSLCode == 401)
                                     {
                                         //logout usuário corrente da session
                                         Conexao.GetInstance().Logout();
@@ -481,20 +481,59 @@ namespace S7TechIntegracao.API.Objetos
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
                                 var response = client.Execute(request);
 
-                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                                dynamic validError = JsonConvert.DeserializeObject(response.Content);
+                                var errorCode = validError["error"];
+                                string codeError = Convert.ToString(validError["error"]);
 
-                                //logout usuário corrente da session
-                                Conexao.GetInstance().Logout();
-                                //login usuário alternativo
-                                Conexao.GetInstance().Login(true);
+                                if (!string.IsNullOrEmpty(codeError))
+                                {
+                                    var retDadosSL = errorCode["message"];
+                                    var retDadosSLCode = errorCode["code"];
 
-                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                    if (retDadosSLCode == 301 || retDadosSLCode == 401)
+                                    {
+                                        //logout usuário corrente da session
+                                        Conexao.GetInstance().Logout();
+                                        //login usuário alternativo
+                                        Conexao.GetInstance().Login(true);
 
-                                //logout usuário alternativo
-                                Conexao.GetInstance().Logout();
-                                //login usuário corrente da session
-                                Conexao.GetInstance().Login();
+                                         model = JsonConvert.SerializeObject(aprovacao);
+                                         client = Conexao.GetInstance().Client;
+                                         request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                         request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                         response = client.Execute(request);
+
+                                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+
+                                            //logout usuário corrente da session
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login(true);
+
+                                            DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                            //logout usuário alternativo
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário corrente da session
+                                            Conexao.GetInstance().Login();
+
+                                    }
+                                }
+                                else
+                                {  //logout usuário corrente da session
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário alternativo
+                                    Conexao.GetInstance().Login(true);
+
+                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                    //logout usuário alternativo
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário corrente da session
+                                    Conexao.GetInstance().Login();
+                                }
                             }
                             else
                             {
