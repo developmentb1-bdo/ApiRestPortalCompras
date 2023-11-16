@@ -474,7 +474,7 @@ namespace S7TechIntegracao.API.Objetos
                                 //if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
                                 //    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
-                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                if (response.IsSuccessful && response.StatusCode == System.Net.HttpStatusCode.NoContent)
                                 {
                                     DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
                                 }                              
