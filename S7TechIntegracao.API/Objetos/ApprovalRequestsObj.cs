@@ -460,17 +460,7 @@ namespace S7TechIntegracao.API.Objetos
                                 }
                                 else
                                 {
-                                    //logout usuário corrente da session
-                                    Conexao.GetInstance().Logout();
-                                    //login usuário alternativo
-                                    Conexao.GetInstance().Login(true);
-
                                     DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                                    //logout usuário alternativo
-                                    Conexao.GetInstance().Logout();
-                                    //login usuário corrente da session
-                                    Conexao.GetInstance().Login();
                                 }
                             }
                             else if ((numberDoc != 0 && status == "W"))
@@ -479,81 +469,62 @@ namespace S7TechIntegracao.API.Objetos
                                 var client = Conexao.GetInstance().Client;
                                 var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
-                                var response = client.Execute(request);
+                                var response = client.Execute<string>(request);
 
-                                dynamic validError = JsonConvert.DeserializeObject(response.Content);
-                                var errorCode = validError["error"];
-                                string codeError = Convert.ToString(validError["error"]);
+                                //if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                //    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
-                                if (!string.IsNullOrEmpty(codeError))
+                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
                                 {
-                                    var retDadosSL = errorCode["message"];
-                                    var retDadosSLCode = errorCode["code"];
+                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                }                              
+                                else
+                                {
+                                    dynamic validError = JsonConvert.DeserializeObject(response.Content);
+                                    var errorCode = validError["error"];
+                                    string codeError = Convert.ToString(validError["error"]);
 
-                                    if (retDadosSLCode == 301 || retDadosSLCode == 401)
+                                    if (!string.IsNullOrEmpty(codeError))
                                     {
-                                        //logout usuário corrente da session
-                                        Conexao.GetInstance().Logout();
-                                        //login usuário alternativo
-                                        Conexao.GetInstance().Login(true);
+                                        var retDadosSL = errorCode["message"];
+                                        var retDadosSLCode = errorCode["code"];
 
-                                         model = JsonConvert.SerializeObject(aprovacao);
-                                         client = Conexao.GetInstance().Client;
-                                         request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
-                                         request.AddParameter("application/json", model, ParameterType.RequestBody);
-                                         response = client.Execute(request);
-
-                                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
-
-
+                                        if (retDadosSLCode == 301 || retDadosSLCode == 401)
+                                        {
                                             //logout usuário corrente da session
                                             Conexao.GetInstance().Logout();
                                             //login usuário alternativo
                                             Conexao.GetInstance().Login(true);
 
+                                            model = JsonConvert.SerializeObject(aprovacao);
+                                            client = Conexao.GetInstance().Client;
+                                            request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                            request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                            response = client.Execute<string>(request);
+
+                                            if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                                throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
                                             DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
 
-                                            //logout usuário alternativo
-                                            Conexao.GetInstance().Logout();
-                                            //login usuário corrente da session
-                                            Conexao.GetInstance().Login();
-
+                                        }
                                     }
-                                }
-                                else
-                                {  //logout usuário corrente da session
-                                    Conexao.GetInstance().Logout();
-                                    //login usuário alternativo
-                                    Conexao.GetInstance().Login(true);
-
-                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                                    //logout usuário alternativo
-                                    Conexao.GetInstance().Logout();
-                                    //login usuário corrente da session
-                                    Conexao.GetInstance().Login();
                                 }
                             }
                             else
-                            {
-                                //logout usuário corrente da session
-                                Conexao.GetInstance().Logout();
-                                //login usuário alternativo
-                                Conexao.GetInstance().Login(true);
-
-                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                                //logout usuário alternativo
-                                Conexao.GetInstance().Logout();
-                                //login usuário corrente da session
-                                Conexao.GetInstance().Login();
+                            {                               
+                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);                               
                             }
                         }
                     }
 
                    
                 }
+
+                //logout usuário alternativo
+                Conexao.GetInstance().Logout();
+                //login usuário corrente da session
+                Conexao.GetInstance().Login();
 
                 var esboco = DraftsObj.GetInstance().Consultar(draftKey);
                 var solicitante = EmployeesInfoObj.GetInstance().Consultar(esboco.DocumentsOwner.Value);

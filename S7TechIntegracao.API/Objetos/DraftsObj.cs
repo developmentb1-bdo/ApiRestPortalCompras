@@ -101,7 +101,10 @@ namespace S7TechIntegracao.API.Objetos
         public void AdicionarEsbocoAprovado(int docEntry)
         {
 
-            Conexao.GetInstance().Login();            
+            //logout usuário corrente da session
+            Conexao.GetInstance().Logout();
+            //login usuário alternativo
+            Conexao.GetInstance().Login(true);
 
             try
             {

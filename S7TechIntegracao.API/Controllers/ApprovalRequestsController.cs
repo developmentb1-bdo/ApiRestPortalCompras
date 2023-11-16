@@ -136,8 +136,8 @@ namespace S7TechIntegracao.API.Controllers
         [Route("api/ApprovalRequests/AprovarPedidoCompras")]
         public IHttpActionResult AprovarPedidoCompras([FromBody] AprovacaoPedidoCompra aprovacao)
         {
-            
-            var sessionId = Conexao.GetInstance().SessionId;
+            Conexao.GetInstance().Login();
+            var sessionId = Conexao.GetInstance().SessionId;          
 
             Log4Net.Log.Info($"Inicio -- [api/ApprovalRequests/AprovarPedidoCompras] [{sessionId}]");
 
