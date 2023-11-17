@@ -100,8 +100,8 @@ namespace S7TechIntegracao.API.Objetos
 
         public void AdicionarEsbocoAprovado(int docEntry)
         {
-
-            Conexao.GetInstance().Login();            
+            var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+            var hanaApi = param["HanaApi"];
 
             try
             {
@@ -109,9 +109,15 @@ namespace S7TechIntegracao.API.Objetos
 
                 var document = new JObject();
                 var docEntryJObject = new JObject();               
+                        
 
                 docEntryJObject["DocEntry"] = docEntry;
+               string docDate = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString();
+
+                docEntryJObject.Add("TaxDate", docDate);
+
                 document["Document"] = docEntryJObject;
+  
 
                 var modelo = JsonConvert.SerializeObject(document);
 
@@ -134,9 +140,15 @@ namespace S7TechIntegracao.API.Objetos
                         //logout usuário corrente da session
                         Conexao.GetInstance().Logout();
                         //login usuário alternativo
-                        Conexao.GetInstance().Login();
+                        Conexao.GetInstance().Login(true);
+
+                        var sessionId = Conexao.GetInstance().SessionId;
 
                         var client1 = Conexao.GetInstance().Client;
+
+                        var b1Session1 = client1.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
+                        Log4Net.Log.Debug($"\"[DraftsObj] [AdicionarEsbocoAprovado] [Sessão {b1Session1.Value}]");
+                      
                         var request1 = new RestRequest($"DraftsService_SaveDraftToDocument", Method.POST);
                         request1.AddParameter("application/json", modelo, ParameterType.RequestBody);
                         var response1 = client1.Execute(request1);

@@ -53,7 +53,7 @@ namespace S7TechIntegracao.API.Objetos
 
                     var request = new RestRequest($"S7T_OWDD", Method.POST);
                     request.AddParameter("application/json", model, ParameterType.RequestBody);
-                    var response = client.Execute<string>(request);
+                    var response = client.Execute<string>(request);                  
 
                     dynamic validError = JsonConvert.DeserializeObject(response.Content); 
 
@@ -70,7 +70,7 @@ namespace S7TechIntegracao.API.Objetos
                             //logout usuário corrente da session
                             Conexao.GetInstance().Logout();
                             //login usuário alternativo
-                            Conexao.GetInstance().Login(true);
+                            Conexao.GetInstance().Login();
 
                             var sessionId = Conexao.GetInstance().SessionId;
 
@@ -79,21 +79,44 @@ namespace S7TechIntegracao.API.Objetos
                             var b1Session1 = client1.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
                             Log4Net.Log.Debug($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] [Sessão {b1Session1.Value}]");
 
-                            var query = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoVazia"), draftEntry, s7OWDD.U_ObjType);
-
-                            using (var hanaService = new HanaService())
-                            {
-                                var dt = hanaService.ExecuteDataTable(query);
-
-                                if (dt.Rows.Count == 0)
-                                {
-                                    request = new RestRequest($"S7T_OWDD", Method.POST);
-                                    request.AddParameter("application/json", model, ParameterType.RequestBody);
-                                    response = client1.Execute<string>(request); 
-                                }
-                            }
+                            request = new RestRequest($"S7T_OWDD", Method.POST);
+                            request.AddParameter("application/json", model, ParameterType.RequestBody);
+                            response = client1.Execute<string>(request);                          
+                        }  
+                        else
+                        {
+                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
                         }
                     }
+                    else
+                    {
+                        var query = string.Format(S7Tech.GetConsultas("ConsultarRegraAprovacaoVazia"), draftEntry, s7OWDD.U_ObjType);
+
+                        using (var hanaService = new HanaService())
+                        {
+                            var dt = hanaService.ExecuteDataTable(query);
+
+                            if (dt.Rows.Count != 0)
+                            {
+                                //logout usuário corrente da session
+                                Conexao.GetInstance().Logout();
+                                //login usuário alternativo
+                                Conexao.GetInstance().Login();
+
+                                var sessionId = Conexao.GetInstance().SessionId;
+
+                                var client1 = Conexao.GetInstance().Client;
+
+                                var b1Session1 = client1.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
+                                Log4Net.Log.Debug($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] [Sessão {b1Session1.Value}]");
+
+
+                                request = new RestRequest($"S7T_OWDD", Method.POST);
+                                request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                response = client1.Execute<string>(request);
+                            }
+                        }
+                    }                   
 
                     if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
                         throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
@@ -105,7 +128,7 @@ namespace S7TechIntegracao.API.Objetos
             }
             catch (Exception ex)
             {
-                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message}");
+                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message} Regra de Aprovação Interna não Inserida DraftEntry:{draftEntry}");
                 throw ex;
             }
         }
@@ -275,7 +298,7 @@ namespace S7TechIntegracao.API.Objetos
             }
             catch (Exception ex)
             {
-                Log4Net.Log.Error($"[ApprovalRequestsObj] [GerarObjetoAprovacao] {ex.Message}");
+                Log4Net.Log.Error($"[ApprovalRequestsObj] [GerarObjetoAprovacao] {ex.Message} DraftEntry:{draftEntry}");
                 throw ex;
             }
         }
@@ -382,6 +405,9 @@ namespace S7TechIntegracao.API.Objetos
 
             Conexao.GetInstance().Login();
 
+            var param = (NameValueCollection)ConfigurationManager.GetSection("ParametrosSAP");
+            var hanaApi = param["HanaApi"];
+
             try
             {
                 int wddCode = GetwddCode(draftKey);
@@ -405,9 +431,7 @@ namespace S7TechIntegracao.API.Objetos
 
                 using (var hanaService = new HanaService())
                 {
-                    var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);
-
-                    //var numberDoc = hanaService.GetHanaConnection().Query<string>(query).ToList();
+                    var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);                  
 
                     using (var dt = hanaService.ExecuteDataTable(query))
                     {
@@ -429,49 +453,54 @@ namespace S7TechIntegracao.API.Objetos
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
                                 var response = client.Execute(request);
 
-                                dynamic validError = JsonConvert.DeserializeObject(response.Content);
-                                var errorCode = validError["error"];
-                                string codeError = Convert.ToString(validError["error"]);
-
-                                if (!string.IsNullOrEmpty(codeError))
+                                if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
                                 {
-                                    var retDadosSL = errorCode["message"];
-                                    var retDadosSLCode = errorCode["code"];
-
-                                    if (retDadosSLCode == 301)
-                                    {
-                                        //logout usuário corrente da session
-                                        Conexao.GetInstance().Logout();
-                                        //login usuário alternativo
-                                        Conexao.GetInstance().Login(true);
-
-                                        model = JsonConvert.SerializeObject(aprovacao);
-                                        client = Conexao.GetInstance().Client;
-                                        request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
-                                        request.AddParameter("application/json", model, ParameterType.RequestBody);
-                                        response = client.Execute(request);
-
-                                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
-
-                                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                                    }
+                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
                                 }
                                 else
                                 {
-                                    //logout usuário corrente da session
-                                    Conexao.GetInstance().Logout();
-                                    //login usuário alternativo
-                                    Conexao.GetInstance().Login(true);
+                                    dynamic validError = JsonConvert.DeserializeObject(response.Content);
+                                    var errorCode = validError["error"];
+                                    string codeError = Convert.ToString(validError["error"]);
 
-                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                    if (!string.IsNullOrEmpty(codeError))
+                                    {
+                                        var retDadosSL = errorCode["message"];
+                                        var retDadosSLCode = errorCode["code"];
 
-                                    //logout usuário alternativo
-                                    Conexao.GetInstance().Logout();
-                                    //login usuário corrente da session
-                                    Conexao.GetInstance().Login();
-                                }
+                                        if (retDadosSLCode == 301 || retDadosSLCode == 401)
+                                        {
+                                            //logout usuário corrente da session
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login(true);
+
+                                            var sessionId = Conexao.GetInstance().SessionId;
+
+                                            var client1 = Conexao.GetInstance().Client;
+
+                                            var b1Session1 = client1.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
+                                            Log4Net.Log.Debug($"[ApprovalRequestsObj] [Aprovar] [Sessão {b1Session1.Value}]");
+
+                                            model = JsonConvert.SerializeObject(aprovacao);
+
+                                            request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                            request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                            response = client1.Execute(request);
+
+                                            if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                                throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                                            DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                        }
+                                        else
+                                        {
+                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                                        }
+                                    }
+                                }                           
+                                
                             }
                             else if ((numberDoc != 0 && status == "W"))
                             {
@@ -479,42 +508,65 @@ namespace S7TechIntegracao.API.Objetos
                                 var client = Conexao.GetInstance().Client;
                                 var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
-                                var response = client.Execute(request);
+                                var response = client.Execute<string>(request);
+                                                             
+                                if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                                {
+                                    DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                    status = "Y";
+                                }                              
+                                else
+                                {
+                                    dynamic validError = JsonConvert.DeserializeObject(response.Content);
+                                    var errorCode = validError["error"];
+                                    string codeError = Convert.ToString(validError["error"]);
 
-                                if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                                    if (!string.IsNullOrEmpty(codeError))
+                                    {
+                                        var retDadosSL = errorCode["message"];
+                                        var retDadosSLCode = errorCode["code"];
 
-                                //logout usuário corrente da session
-                                Conexao.GetInstance().Logout();
-                                //login usuário alternativo
-                                Conexao.GetInstance().Login(true);
+                                        if (retDadosSLCode == 301 || retDadosSLCode == 401)
+                                        {
+                                            //logout usuário corrente da session
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login(true);
 
-                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                            var sessionId = Conexao.GetInstance().SessionId;
 
-                                //logout usuário alternativo
-                                Conexao.GetInstance().Logout();
-                                //login usuário corrente da session
-                                Conexao.GetInstance().Login();
+                                            var client1 = Conexao.GetInstance().Client;
+
+                                            var b1Session1 = client1.CookieContainer.GetCookies(new Uri(hanaApi))["B1SESSION"];
+                                            Log4Net.Log.Debug($"[ApprovalRequestsObj] [Aprovar] [Sessão {b1Session1.Value}]");
+
+                                            model = JsonConvert.SerializeObject(aprovacao);                                          
+                                            request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                            request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                            response = client1.Execute<string>(request);
+
+                                            if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                                throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                                            DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                        }
+                                        else
+                                        {
+                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                                        }
+                                    }
+                                }
                             }
                             else
-                            {
-                                //logout usuário corrente da session
-                                Conexao.GetInstance().Logout();
-                                //login usuário alternativo
-                                Conexao.GetInstance().Login(true);
-
-                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                                //logout usuário alternativo
-                                Conexao.GetInstance().Logout();
-                                //login usuário corrente da session
-                                Conexao.GetInstance().Login();
+                            {                               
+                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);                               
                             }
                         }
                     }
 
                    
-                }
+                }              
 
                 var esboco = DraftsObj.GetInstance().Consultar(draftKey);
                 var solicitante = EmployeesInfoObj.GetInstance().Consultar(esboco.DocumentsOwner.Value);

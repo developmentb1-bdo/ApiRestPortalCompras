@@ -42,7 +42,9 @@ namespace S7TechIntegracao.API.Controllers
             }
             catch (Exception ex)
             {
-                Log4Net.Log.Error($"[api/ApprovalRequests/AdicionarRegraAprovacaoInterna/draftEntry] [{sessionId}] {ex.Message}");
+                Log4Net.Log.Error($"[api/ApprovalRequests/AdicionarRegraAprovacaoInterna/draftEntry] DraftEntry:{draftEntry} \r\n [{sessionId}] \r\n {ex.Message}");              
+
+               // throw ex;
 
                 try
                 {
@@ -56,7 +58,7 @@ namespace S7TechIntegracao.API.Controllers
             }
             finally
             {
-                Log4Net.Log.Info($"Fim -- [api/ApprovalRequests/AdicionarRegraAprovacaoInterna/draftEntry] [{sessionId}]");
+                Log4Net.Log.Info($"Fim -- [api/ApprovalRequests/AdicionarRegraAprovacaoInterna/draftEntry] DraftEntry:{draftEntry} \r\n [{sessionId}]");
             }
         }
 
@@ -136,8 +138,8 @@ namespace S7TechIntegracao.API.Controllers
         [Route("api/ApprovalRequests/AprovarPedidoCompras")]
         public IHttpActionResult AprovarPedidoCompras([FromBody] AprovacaoPedidoCompra aprovacao)
         {
-            
-            var sessionId = Conexao.GetInstance().SessionId;
+            Conexao.GetInstance().Login();
+            var sessionId = Conexao.GetInstance().SessionId;          
 
             Log4Net.Log.Info($"Inicio -- [api/ApprovalRequests/AprovarPedidoCompras] [{sessionId}]");
 
