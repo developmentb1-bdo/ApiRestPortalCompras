@@ -178,7 +178,7 @@
     </Reference>
     <Reference Include="Sap.Data.Hana.v4.5, Version=1.0.120.0, Culture=neutral, PublicKeyToken=0326b8ea63db4bc4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\..\Program Files\sap\hdbclient\ado.net\v4.5\Sap.Data.Hana.v4.5.dll</HintPath>
+      <HintPath>..\..\..\..\..\Desktop\DLL\hdClientEletromidisHana10\hdbclientX64\ado.net\v4.5\Sap.Data.Hana.v4.5.dll</HintPath>
     </Reference>
     <Reference Include="Swashbuckle.AspNetCore.Annotations, Version=5.5.1.0, Culture=neutral, PublicKeyToken=e9121ecc40036af8, processorArchitecture=MSIL">
       <HintPath>..\packages\Swashbuckle.AspNetCore.Annotations.5.5.1\lib\netstandard2.0\Swashbuckle.AspNetCore.Annotations.dll</HintPath>

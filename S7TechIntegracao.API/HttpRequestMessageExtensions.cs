@@ -35,9 +35,10 @@ namespace S7TechIntegracao.API
 
 #if DEBUG != false
 
-            uriBase = scheme + "://" + authority + baseUrl;
+            //uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
+           uriBase = scheme + "://" + authority + baseUrl;
 #else
-            uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
+           uriBase = scheme + "://" + authority + baseUrl;
 #endif
 
 
