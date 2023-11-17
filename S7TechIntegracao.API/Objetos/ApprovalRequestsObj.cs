@@ -93,6 +93,10 @@ namespace S7TechIntegracao.API.Objetos
                                 }
                             }
                         }
+                        else
+                        {
+                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                        }
                     }
 
                     if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
@@ -105,7 +109,7 @@ namespace S7TechIntegracao.API.Objetos
             }
             catch (Exception ex)
             {
-                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message} + {draftEntry}");
+                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message} Regra de Aprovação Interna não Inserida DraftEntry:{draftEntry}");
                 throw ex;
             }
         }
@@ -405,9 +409,7 @@ namespace S7TechIntegracao.API.Objetos
 
                 using (var hanaService = new HanaService())
                 {
-                    var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);
-
-                    //var numberDoc = hanaService.GetHanaConnection().Query<string>(query).ToList();
+                    var query = string.Format(S7Tech.GetConsultas("ValidaGeracaoDocumento"), draftKey);                  
 
                     using (var dt = hanaService.ExecuteDataTable(query))
                     {
@@ -429,39 +431,47 @@ namespace S7TechIntegracao.API.Objetos
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
                                 var response = client.Execute(request);
 
-                                dynamic validError = JsonConvert.DeserializeObject(response.Content);
-                                var errorCode = validError["error"];
-                                string codeError = Convert.ToString(validError["error"]);
-
-                                if (!string.IsNullOrEmpty(codeError))
-                                {
-                                    var retDadosSL = errorCode["message"];
-                                    var retDadosSLCode = errorCode["code"];
-
-                                    if (retDadosSLCode == 301 || retDadosSLCode == 401)
-                                    {
-                                        //logout usuário corrente da session
-                                        Conexao.GetInstance().Logout();
-                                        //login usuário alternativo
-                                        Conexao.GetInstance().Login(true);
-
-                                        model = JsonConvert.SerializeObject(aprovacao);
-                                        client = Conexao.GetInstance().Client;
-                                        request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
-                                        request.AddParameter("application/json", model, ParameterType.RequestBody);
-                                        response = client.Execute(request);
-
-                                        if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
-
-                                        DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
-
-                                    }
-                                }
-                                else
+                                if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
                                 {
                                     DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
                                 }
+                                else
+                                {
+                                    dynamic validError = JsonConvert.DeserializeObject(response.Content);
+                                    var errorCode = validError["error"];
+                                    string codeError = Convert.ToString(validError["error"]);
+
+                                    if (!string.IsNullOrEmpty(codeError))
+                                    {
+                                        var retDadosSL = errorCode["message"];
+                                        var retDadosSLCode = errorCode["code"];
+
+                                        if (retDadosSLCode == 301 || retDadosSLCode == 401)
+                                        {
+                                            //logout usuário corrente da session
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login(true);
+
+                                            model = JsonConvert.SerializeObject(aprovacao);
+                                            client = Conexao.GetInstance().Client;
+                                            request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
+                                            request.AddParameter("application/json", model, ParameterType.RequestBody);
+                                            response = client.Execute(request);
+
+                                            if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
+                                                throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+
+                                            DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                        }
+                                        else
+                                        {
+                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
+                                        }
+                                    }
+                                }                           
+                                
                             }
                             else if ((numberDoc != 0 && status == "W"))
                             {
@@ -470,13 +480,11 @@ namespace S7TechIntegracao.API.Objetos
                                 var request = new RestRequest($"ApprovalRequests({wddCode})", Method.PATCH);
                                 request.AddParameter("application/json", model, ParameterType.RequestBody);
                                 var response = client.Execute<string>(request);
-
-                                //if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
-                                //    throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
-
-                                if (response.IsSuccessful && response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                                                             
+                                if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
                                 {
                                     DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+                                    status = "Y";
                                 }                              
                                 else
                                 {
@@ -507,6 +515,10 @@ namespace S7TechIntegracao.API.Objetos
 
                                             DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
 
+                                        }
+                                        else
+                                        {
+                                            throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
                                         }
                                     }
                                 }

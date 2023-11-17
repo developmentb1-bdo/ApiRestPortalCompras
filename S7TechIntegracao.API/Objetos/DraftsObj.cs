@@ -112,9 +112,15 @@ namespace S7TechIntegracao.API.Objetos
 
                 var document = new JObject();
                 var docEntryJObject = new JObject();               
+                        
 
                 docEntryJObject["DocEntry"] = docEntry;
+               string docDate = DateTime.Now.Year.ToString() + DateTime.Now.Month.ToString() + DateTime.Now.Day.ToString();
+
+                docEntryJObject.Add("TaxDate", docDate);
+
                 document["Document"] = docEntryJObject;
+  
 
                 var modelo = JsonConvert.SerializeObject(document);
 
