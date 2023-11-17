@@ -23,16 +23,26 @@ namespace S7TechIntegracao.API
             var portaHttp = Convert.ToInt32(param["PortaHttp"]);
             var portaHttps = Convert.ToInt32(param["PortaHttps"]);
 
-//#if DEBUG == false
+            string uriBase;
 
-//            if (port == 8082)
-//                port = portaHttp;
-//            else
-//                port = portaHttps;
-//#endif
+#if DEBUG == false
 
-            //var uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
-            var uriBase = scheme + "://" + authority + baseUrl;
+            if (port == 80)
+                port = portaHttps;
+            else
+                port = portaHttp;
+#endif
+
+#if DEBUG != false
+
+            uriBase = scheme + "://" + authority + baseUrl;
+#else
+            uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
+#endif
+
+
+            //uriBase = scheme + "://" + authority + ":" + port.ToString() + "/" + baseUrl;
+            //var uriBase = scheme + "://" + authority + baseUrl;
 
             return uriBase;
         }
