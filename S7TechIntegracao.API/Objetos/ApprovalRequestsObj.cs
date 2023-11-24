@@ -455,7 +455,15 @@ namespace S7TechIntegracao.API.Objetos
 
                                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
                                 {
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário alternativo
+                                    Conexao.GetInstance().Login(true);
+
                                     DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário alternativo
+                                    Conexao.GetInstance().Login();
                                 }
                                 else
                                 {
