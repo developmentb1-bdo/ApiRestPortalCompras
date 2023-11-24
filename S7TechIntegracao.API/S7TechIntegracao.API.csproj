@@ -548,6 +548,7 @@
     <EmbeddedResource Include="Consultas\AtualizarUsuarioSenhaEncripitada.sql" />
     <EmbeddedResource Include="Consultas\ConsultarTitlesPaidOutSalesInvoice.sql" />
     <EmbeddedResource Include="Consultas\ConsultarRegraAprovacaoVazia.sql" />
+    <EmbeddedResource Include="Consultas\ConsultarDepositoPorFilial.sql" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Layouts\defaultPurchaseOrder.xslt" />

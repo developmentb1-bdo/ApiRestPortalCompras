@@ -10,6 +10,7 @@ using System.Collections.Specialized;
 using System.Configuration;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -34,7 +35,7 @@ namespace S7TechIntegracao.API.Objetos
 
                 DocumentsObj.GetInstance().AdicionarCentrosCustos(ref model);
 
-                Log4Net.Log.Info($"[Diagnostics] [Cadastrar] {model}");
+                Log4Net.Log.Info($"[Diagnostics] [Cadastrar] {model}"); 
 
                 var client = Conexao.GetInstance().Client;
                 var request = new RestRequest("PurchaseOrders", Method.POST);

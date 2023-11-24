@@ -1,0 +1,1 @@
+﻿select "WhsCode" from OWHS where "BPLid" = '{0}'

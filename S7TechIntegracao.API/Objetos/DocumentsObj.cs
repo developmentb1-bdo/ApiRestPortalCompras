@@ -23,6 +23,8 @@ namespace S7TechIntegracao.API.Objetos
             {
                 var modeloConvertido = JsonConvert.DeserializeObject<dynamic>(modelo.ToString());
 
+                var filial = modeloConvertido["BPL_IDAssignedToInvoice"];
+
                 if (modeloConvertido.DocumentLines == null)
                     return;
 
@@ -30,7 +32,7 @@ namespace S7TechIntegracao.API.Objetos
                 {
                     var linha = modeloConvertido.DocumentLines[i];
                     var projetoCode = linha.ProjectCode;
-                    var costingCode2 = linha.CostingCode2;
+                    var costingCode2 = linha.CostingCode2;                    
 
                     if (projetoCode != null)
                     {
@@ -43,6 +45,20 @@ namespace S7TechIntegracao.API.Objetos
                         ProfitCenter profitCenter = ProfitCentersObj.GetInstance().Consultar(costingCode2.ToString());
                         modeloConvertido.DocumentLines[i].CostingCode = profitCenter.U_S7T_AreaFuncional;
                     }
+                    if (filial != null)
+                    {
+                        var query = string.Format(S7Tech.GetConsultas("ConsultarDepositoPorFilial"), filial);
+
+                        DocumentLines documentLines = new DocumentLines();
+
+                        using (var hanaService = new HanaService())
+                        {
+                            var resultQuery = hanaService.ExecuteScalar(query);
+                            modeloConvertido.DocumentLines[i].WarehouseCode = resultQuery;
+                        }
+                    }
+
+
                 }
 
                 modelo = JsonConvert.SerializeObject(modeloConvertido);

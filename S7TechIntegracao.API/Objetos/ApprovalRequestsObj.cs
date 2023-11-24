@@ -470,10 +470,10 @@ namespace S7TechIntegracao.API.Objetos
 
                                         if (retDadosSLCode == 301 || retDadosSLCode == 401)
                                         {
-                                            //logout usuário corrente da session
+                                           
                                             Conexao.GetInstance().Logout();
-                                            //login usuário alternativo
-                                            Conexao.GetInstance().Login(true);
+                                            
+                                            Conexao.GetInstance().Login();
 
                                             var sessionId = Conexao.GetInstance().SessionId;
 
@@ -491,7 +491,15 @@ namespace S7TechIntegracao.API.Objetos
                                             if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
                                                 throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login(true);
+
                                             DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login();
 
                                         }
                                         else
@@ -512,7 +520,16 @@ namespace S7TechIntegracao.API.Objetos
                                                              
                                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
                                 {
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário alternativo
+                                    Conexao.GetInstance().Login(true);
+
                                     DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                    Conexao.GetInstance().Logout();
+                                    //login usuário alternativo
+                                    Conexao.GetInstance().Login();
+
                                     status = "Y";
                                 }                              
                                 else
@@ -531,7 +548,7 @@ namespace S7TechIntegracao.API.Objetos
                                             //logout usuário corrente da session
                                             Conexao.GetInstance().Logout();
                                             //login usuário alternativo
-                                            Conexao.GetInstance().Login(true);
+                                            Conexao.GetInstance().Login();
 
                                             var sessionId = Conexao.GetInstance().SessionId;
 
@@ -548,8 +565,15 @@ namespace S7TechIntegracao.API.Objetos
                                             if (!response.IsSuccessful && response.StatusCode != System.Net.HttpStatusCode.NoContent)
                                                 throw new Exception(!string.IsNullOrEmpty(response.ErrorMessage) ? response.ErrorMessage : response.Content);
 
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login(true);
+
                                             DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
 
+                                            Conexao.GetInstance().Logout();
+                                            //login usuário alternativo
+                                            Conexao.GetInstance().Login();
                                         }
                                         else
                                         {
@@ -559,8 +583,16 @@ namespace S7TechIntegracao.API.Objetos
                                 }
                             }
                             else
-                            {                               
-                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);                               
+                            {
+                                Conexao.GetInstance().Logout();
+                                //login usuário alternativo
+                                Conexao.GetInstance().Login(true);
+
+                                DraftsObj.GetInstance().AdicionarEsbocoAprovado(draftKey);
+
+                                Conexao.GetInstance().Logout();
+                                //login usuário alternativo
+                                Conexao.GetInstance().Login();
                             }
                         }
                     }

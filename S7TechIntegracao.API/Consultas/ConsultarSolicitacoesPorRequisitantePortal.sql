@@ -44,6 +44,8 @@ SELECT
 			'Pendente'
 		WHEN 'N' THEN
 			'Rejeitado'
+		else
+			'Error'
 	END AS "StatusAprovacao",
 	--COALESCE(T3."U_CentroCusto", '') AS "CentroCusto",
 	CASE T0."CANCELED"
@@ -55,11 +57,11 @@ SELECT
 FROM ODRF T0
 	INNER JOIN OWDD T1 ON T1."DraftEntry" = T0."DocEntry" AND T1."ObjType" = T0."ObjType"
 	INNER JOIN DRF1 T2 ON T2."DocEntry" = T0."DocEntry"
-	--INNER JOIN "@S7T_APROVOPRQ" T3 ON COALESCE(T3."U_CentroCusto", '') = T2."OcrCode2"
-	--INNER JOIN "@S7T_APROVPRQ1" T4 ON T4."Code" = T3."Code"
+	INNER JOIN "@S7T_OWDD" T3 ON T3."U_DraftEntry" = T0."DocEntry" AND T3."U_ObjType" = T0."ObjType"
+	inner Join "@S7T_WDD1" T4 ON T4."Code" = T3."Code"	
 WHERE
 	T0."ObjType" = '1470000113'	
-	AND T1."Status" <> 'Y'
+    AND (T1."Status" <> 'Y' OR (T1."Status" = 'Y' and T3."U_Status" = 'Y' and T1."ProcesStat" ='Y')OR(T1."Status" = 'W' and T1."ProcesStat" = 'W' and T3."U_Status" = 'Y'))
 	AND T0."Requester" = '{0}' 
 	--AND T0."DataSource" = 'O'
 	
