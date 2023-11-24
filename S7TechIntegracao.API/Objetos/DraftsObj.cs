@@ -137,10 +137,10 @@ namespace S7TechIntegracao.API.Objetos
 
                     if(wddCode != null)
                     {
-                        //logout usuário corrente da session
+                        
                         Conexao.GetInstance().Logout();
-                        //login usuário alternativo
-                        Conexao.GetInstance().Login(true);
+                        
+                        Conexao.GetInstance().Login();
 
                         var sessionId = Conexao.GetInstance().SessionId;
 
