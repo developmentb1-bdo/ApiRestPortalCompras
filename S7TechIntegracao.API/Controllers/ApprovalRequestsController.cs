@@ -430,5 +430,39 @@ namespace S7TechIntegracao.API.Controllers
                 Log4Net.Log.Info($"Fim -- [api/ApprovalRequests/ConsultarStatusAprovadoresEsboco/draftEntry] [{sessionId}]");
             }
         }
+
+        [HttpGet]
+        [SwaggerOperation("GetRuleApproval")]
+        [Route("api/ApprovalRequests/ConsultarRegraAprovacao")]
+        public IHttpActionResult GetRuleApproval([FromUri] double totalDaLinha, string centroCusto,string obj)
+        {
+            Conexao.GetInstance().Login();
+            var sessionId = Conexao.GetInstance().SessionId;
+
+            Log4Net.Log.Info($"Inicio -- [api/ApprovalRequests/ConsultarRegraAprovacao] [{sessionId}]");
+
+            try
+            {
+                return Ok(ApprovalRequestsObj.GetInstance().ConsultarRegraAprovacao(totalDaLinha, centroCusto,obj));
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[api/ApprovalRequests/ConsultarRegraAprovacao] [{sessionId}] {ex.Message}");
+
+                try
+                {
+                    var jsonObj = JObject.Parse(ex.Message);
+                    return Content(HttpStatusCode.BadRequest, jsonObj);
+                }
+                catch
+                {
+                    return Content(HttpStatusCode.BadRequest, ex.Message);
+                }
+            }
+            finally
+            {
+                Log4Net.Log.Info($"Fim -- [api/ApprovalRequests/ConsultarRegraAprovacao] [{sessionId}]");
+            }
+        }
     }
 }

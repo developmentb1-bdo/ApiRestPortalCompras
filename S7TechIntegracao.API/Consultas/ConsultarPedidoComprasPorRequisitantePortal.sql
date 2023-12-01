@@ -58,8 +58,8 @@ SELECT
 FROM ODRF T0
 	INNER JOIN OWDD T1 ON T1."DraftEntry" = T0."DocEntry" AND T1."ObjType" = T0."ObjType"
 	INNER JOIN OHEM T2 ON T0."OwnerCode" = T2."empID"
-	INNER JOIN "@S7T_OWDD" T3 ON T3."U_DraftEntry" = T0."DocEntry" AND T3."U_ObjType" = T0."ObjType"
-	inner Join "@S7T_WDD1" T4 ON T4."Code" = T3."Code"
+	left JOIN "@S7T_OWDD" T3 ON T3."U_DraftEntry" = T0."DocEntry" AND T3."U_ObjType" = T0."ObjType"
+	left Join "@S7T_WDD1" T4 ON T4."Code" = T3."Code"
 WHERE
 	T0."ObjType" = '22'
 	AND (T1."Status" <> 'Y' OR (T1."Status" = 'Y' and T3."U_Status" = 'Y' and T1."ProcesStat" ='Y')OR(T1."Status" = 'W' and T1."ProcesStat" = 'W' and T3."U_Status" = 'Y'))

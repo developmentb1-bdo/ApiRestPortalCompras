@@ -549,6 +549,7 @@
     <EmbeddedResource Include="Consultas\ConsultarTitlesPaidOutSalesInvoice.sql" />
     <EmbeddedResource Include="Consultas\ConsultarRegraAprovacaoVazia.sql" />
     <EmbeddedResource Include="Consultas\ConsultarDepositoPorFilial.sql" />
+    <EmbeddedResource Include="Consultas\ConsultarAlcadaAprovacao.sql" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="Layouts\defaultPurchaseOrder.xslt" />
