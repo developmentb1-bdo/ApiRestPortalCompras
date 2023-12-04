@@ -128,7 +128,7 @@ namespace S7TechIntegracao.API.Objetos
             }
             catch (Exception ex)
             {
-                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message} Regra de Aprovação Interna não Inserida DraftEntry:{draftEntry}");
+                Log4Net.Log.Error($"[ApprovalRequestsObj] [AdicionarRegraAprovacaoInterna] {ex.Message} Regra de Aprovação Interna não Inserida! DraftEntry:{draftEntry}");
                 throw ex;
             }
         }
@@ -309,6 +309,25 @@ namespace S7TechIntegracao.API.Objetos
             {
                 var ret = string.Empty;
                 var query = string.Format(S7Tech.GetConsultas("ConsultarCodeRegraAprovacaoInterna"), draftEntry);
+
+                using (var hanaService = new HanaService())
+                    ret = hanaService.GetHanaConnection().Query<string>(query).FirstOrDefault();
+
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                Log4Net.Log.Error($"[ApprovalRequestsObj] [ConsultarCodeAlcadaAprovacao] {ex.Message}");
+                throw ex;
+            }
+        }
+
+        public string ConsultarRegraAprovacao(double totalLinha, string centroCusto, string obj)
+        {
+            try
+            {
+                var ret = string.Empty;
+                var query = string.Format(S7Tech.GetConsultas("ConsultarAlcadaAprovacao"), totalLinha, centroCusto,obj);
 
                 using (var hanaService = new HanaService())
                     ret = hanaService.GetHanaConnection().Query<string>(query).FirstOrDefault();
